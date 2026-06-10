@@ -1,0 +1,676 @@
+2025-08-16 09:40:44,075 - INFO - ========== START ==========
+2025-08-16 09:40:44,075 - INFO - Arguments: {'log_path': './log', 'log_filename': 'balance-scale_CoT_deepseek-chat_3_1.log', 'data_name': 'balance-scale', 'output_format': 'NL', 'llm_model': 'deepseek-chat', 'nl2code': '', 'code_model': 'deepseek-chat', 'enlarge_num': 2, 'iter': 10, 'task_type': 1, 'seed': 1, 'test_size': 0.2, 'val_size': 0.2, 'ensemble': 1, 'sample_size': 4, 'sample_method': 1, 'demo_format': 0, 'op_type': 2, 'metadata_cat': 3, 'max_tokens': 8192, 'temperature': 1.0}
+2025-08-16 09:42:02,078 - INFO - val_acc = 0.96
+2025-08-16 09:42:02,639 - INFO - test_acc = 0.952
+2025-08-16 09:42:02,640 - INFO - ========== Iteration 1/10 ==========
+2025-08-16 09:42:02,654 - INFO - Initial prompt: You are an expert datascientist working to improve predictions. 
+You perform feature engineering that generate additional columns that are useful for a downstream task.
+
+Task: This data set was generated to model psychological experimental results. Each example is classified as having the balance scale tip to the right, tip to the left, or be balanced. The attributes are the left weight, the left distance, the right weight, and the right distance. The correct way to find the class is the greater of (left-distance * left-weight) and (right-distance * right-weight). If they are equal, it is balanced.
+
+Features:
+- L-Weight: Left-Weight: 5 (1, 2, 3, 4, 5) (numerical), range = [1, 5], Q1 = 2.0, Median = 3.0, Q3 = 4.0, Mean = 2.9867, Std = 1.4357
+- L-Distance: Left-Distance: 5 (1, 2, 3, 4, 5) (numerical), range = [1, 5], Q1 = 2.0, Median = 3.0, Q3 = 4.0, Mean = 3.0773, Std = 1.4318
+- R-Weight: Right-Weight: 5 (1, 2, 3, 4, 5) (numerical), range = [1, 5], Q1 = 2.0, Median = 3.0, Q3 = 4.0, Mean = 3.0267, Std = 1.4196
+- R-Distance: Right-Distance: 5 (1, 2, 3, 4, 5) (numerical), range = [1, 5], Q1 = 2.0, Median = 3.0, Q3 = 4.0, Mean = 2.9787, Std = 1.4403
+
+Data Examples:
+L-Weight is 2. L-Distance is 1. R-Weight is 1. R-Distance is 2.
+Answer: 0
+L-Weight is 2. L-Distance is 5. R-Weight is 3. R-Distance is 2.
+Answer: 1
+L-Weight is 1. L-Distance is 1. R-Weight is 4. R-Distance is 3.
+Answer: 2
+
+
+Operators:
+square, sqrt, cosine, sine, tangent, exp, cube, log, reciprocal, sigmoid, abs, negate, zscore, minmax, rank, bin, one_hot, label_encode, extract_time, is_weekend, elapsed_time, plus, subtract, multiply, divide, mod, equal, greater, less, max, min, cross, concat, ratio, diff, bin
+rolling_mean, lag, cumsum, groupbythenmean, groupbythenmin, groupbythenmax, groupbythenmedian, groupbythenstd, groupbythenrank, target_encoding
+
+2025-08-16 09:42:03,055 - INFO - HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2025-08-16 09:42:17,697 - INFO - Token Usage:{'prompt_tokens': 858, 'completion_tokens': 341, 'total_tokens': 1199}
+2025-08-16 09:42:17,697 - INFO - LLM Output: Here are three potential feature engineering steps that could improve the downstream model's performance by capturing the underlying physics of the balance scale problem and introducing meaningful interactions:
+
+1. <left_torque><multiply><L-Weight><L-Distance><Calculates the torque on the left side (weight * distance), which is directly relevant to the target>  
+   Reasoning: The target is determined by comparing left and right torques. Explicitly calculating this product creates a feature that directly aligns with the decision rule, making it easier for the model to learn.
+
+2. <right_torque><multiply><R-Weight><R-Distance><Calculates the torque on the right side (weight * distance), mirroring the left_torque feature>  
+   Reasoning: Symmetric to the left torque, this feature completes the pair needed for the comparison. The model can now directly compare these two values or use their difference/ratio.
+
+3. <torque_diff><subtract><left_torque><right_torque><Difference between left and right torques (left - right), indicating imbalance direction>  
+   Reasoning: The sign of this difference directly corresponds to the target class (positive = left, negative = right, zero = balanced). This reduces the problem to a single informative feature.  
+
+Alternative third option if torque_diff seems too direct:  
+3. <torque_ratio><ratio><left_torque><right_torque><Ratio of left to right torque, capturing relative dominance>  
+   Reasoning: Ratios can be more robust than differences when scales vary, and the ratio being >1, <1, or =1 maps neatly to the classes.
+2025-08-16 09:42:17,706 - INFO - Success Operators:
+[{'new_feature_name': 'left_torque', 'operator': 'multiply', 'feature1': 'L-Weight', 'feature2': 'L-Distance', 'description': 'Calculates the torque on the left side (weight * distance), which is directly relevant to the target'}, {'new_feature_name': 'right_torque', 'operator': 'multiply', 'feature1': 'R-Weight', 'feature2': 'R-Distance', 'description': 'Calculates the torque on the right side (weight * distance), mirroring the left_torque feature'}, {'new_feature_name': 'torque_diff', 'operator': 'subtract', 'feature1': 'left_torque', 'feature2': 'right_torque', 'description': 'Difference between left and right torques (left - right), indicating imbalance direction'}, {'new_feature_name': 'torque_ratio', 'operator': 'ratio', 'feature1': 'left_torque', 'feature2': 'right_torque', 'description': 'Ratio of left to right torque, capturing relative dominance'}]
+2025-08-16 09:42:17,710 - INFO - Extracted Metadata: {'L-Weight': 'Left-Weight: 5 (1, 2, 3, 4, 5)', 'L-Distance': 'Left-Distance: 5 (1, 2, 3, 4, 5)', 'R-Weight': 'Right-Weight: 5 (1, 2, 3, 4, 5)', 'R-Distance': 'Right-Distance: 5 (1, 2, 3, 4, 5)', 'left_torque': 'Calculates the torque on the left side (weight * distance), which is directly relevant to the target', 'right_torque': 'Calculates the torque on the right side (weight * distance), mirroring the left_torque feature', 'torque_diff': 'Difference between left and right torques (left - right), indicating imbalance direction', 'torque_ratio': 'Ratio of left to right torque, capturing relative dominance'}
+2025-08-16 09:43:17,960 - INFO - new_val_acc = 1.0
+2025-08-16 09:44:26,033 - INFO - sel_val_acc = 1.0
+2025-08-16 09:44:26,040 - INFO - Time used for iteration 1: 143.40 seconds
+2025-08-16 09:44:26,040 - INFO - Total token usage = 1199
+2025-08-16 09:44:26,040 - INFO - ========== Iteration 2/10 ==========
+2025-08-16 09:44:26,059 - INFO - Initial prompt: You are an expert datascientist working to improve predictions. 
+You perform feature engineering that generate additional columns that are useful for a downstream task.
+
+Task: This data set was generated to model psychological experimental results. Each example is classified as having the balance scale tip to the right, tip to the left, or be balanced. The attributes are the left weight, the left distance, the right weight, and the right distance. The correct way to find the class is the greater of (left-distance * left-weight) and (right-distance * right-weight). If they are equal, it is balanced.
+
+Features:
+- L-Weight: Left-Weight: 5 (1, 2, 3, 4, 5) (numerical), range = [1, 5], Q1 = 2.0, Median = 3.0, Q3 = 4.0, Mean = 2.9867, Std = 1.4357
+- L-Distance: Left-Distance: 5 (1, 2, 3, 4, 5) (numerical), range = [1, 5], Q1 = 2.0, Median = 3.0, Q3 = 4.0, Mean = 3.0773, Std = 1.4318
+- R-Weight: Right-Weight: 5 (1, 2, 3, 4, 5) (numerical), range = [1, 5], Q1 = 2.0, Median = 3.0, Q3 = 4.0, Mean = 3.0267, Std = 1.4196
+- R-Distance: Right-Distance: 5 (1, 2, 3, 4, 5) (numerical), range = [1, 5], Q1 = 2.0, Median = 3.0, Q3 = 4.0, Mean = 2.9787, Std = 1.4403
+- left_torque: Calculates the torque on the left side (weight * distance), which is directly relevant to the target (numerical), range = [1, 25], Q1 = 4.0, Median = 8.0, Q3 = 15.0, Mean = 9.1493, Std = 6.4608
+- right_torque: Calculates the torque on the right side (weight * distance), mirroring the left_torque feature (numerical), range = [1, 25], Q1 = 4.0, Median = 8.0, Q3 = 12.0, Mean = 9.0187, Std = 6.3807
+- torque_diff: Difference between left and right torques (left - right), indicating imbalance direction (numerical), range = [-24, 23], Q1 = -6.0, Median = 0.0, Q3 = 6.0, Mean = 0.1307, Std = 9.3909
+- torque_ratio: Ratio of left to right torque, capturing relative dominance (numerical), range = [0.0399999984, 19.999980000020003], Q1 = 0.499999750000125, Median = 0.9999998888889012, Q3 = 2.499998750000625, Mean = 1.9678, Std = 2.6699
+
+Data Examples:
+L-Weight is 4.0. L-Distance is 1.0. R-Weight is 1.0. R-Distance is 4.0. left_torque is 4.0. right_torque is 4.0. torque_diff is 0.0. torque_ratio is 0.9999997500000624.
+Answer: 0.0
+L-Weight is 3.0. L-Distance is 2.0. R-Weight is 1.0. R-Distance is 1.0. left_torque is 6.0. right_torque is 1.0. torque_diff is 5.0. torque_ratio is 5.999994000006001.
+Answer: 1.0
+L-Weight is 3.0. L-Distance is 4.0. R-Weight is 5.0. R-Distance is 3.0. left_torque is 12.0. right_torque is 15.0. torque_diff is -3.0. torque_ratio is 0.7999999466666703.
+Answer: 2.0
+
+
+Operators:
+square, sqrt, cosine, sine, tangent, exp, cube, log, reciprocal, sigmoid, abs, negate, zscore, minmax, rank, bin, one_hot, label_encode, extract_time, is_weekend, elapsed_time, plus, subtract, multiply, divide, mod, equal, greater, less, max, min, cross, concat, ratio, diff, bin
+rolling_mean, lag, cumsum, groupbythenmean, groupbythenmin, groupbythenmax, groupbythenmedian, groupbythenstd, groupbythenrank, target_encoding
+
+2025-08-16 09:44:26,260 - INFO - HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2025-08-16 09:44:41,377 - INFO - Token Usage:{'prompt_tokens': 1328, 'completion_tokens': 325, 'total_tokens': 1653}
+2025-08-16 09:44:41,378 - INFO - LLM Output: Here are three potential feature engineering steps that could improve the downstream model's performance, given the torque-based nature of the target variable:
+
+1. <torque_sum><plus><left_torque><right_torque><Sum of left and right torques, capturing total system energy which may interact with imbalance direction>
+   - Reasoning: The sum of torques could reveal cases where high total torque makes small differences more significant (e.g., 15 vs 16 torque matters more than 1 vs 2). This interacts with the torque_diff feature.
+
+2. <torque_abs_diff><abs><torque_diff><Absolute value of torque difference, measuring imbalance magnitude regardless of direction>
+   - Reasoning: While torque_diff shows direction, its absolute value captures how decisively the scale tips, which may help distinguish borderline cases from clear imbalances.
+
+3. <log_torque_ratio><log><torque_ratio><Logarithm of torque ratio to handle extreme values and make the feature more normally distributed>
+   - Reasoning: The current torque_ratio has extreme values (0.04 to 20) with high std. Log transform will compress the scale while preserving ordering, making it easier for models to learn from.
+
+These features maintain the physical interpretability of the system while providing alternative representations that may help the model:
+1) torque_sum adds system-level context
+2) torque_abs_diff provides direction-agnostic imbalance strength
+3) log_torque_ratio improves numerical stability of ratios
+
+All features avoid creating collinearity with existing features while potentially exposing new informative patterns to the model.
+2025-08-16 09:44:41,389 - INFO - Success Operators:
+[{'new_feature_name': 'torque_sum', 'operator': 'plus', 'feature1': 'left_torque', 'feature2': 'right_torque', 'description': 'Sum of left and right torques, capturing total system energy which may interact with imbalance direction'}, {'new_feature_name': 'torque_abs_diff', 'operator': 'abs', 'feature1': 'torque_diff', 'feature2': None, 'description': 'Absolute value of torque difference, measuring imbalance magnitude regardless of direction'}, {'new_feature_name': 'log_torque_ratio', 'operator': 'log', 'feature1': 'torque_ratio', 'feature2': None, 'description': 'Logarithm of torque ratio to handle extreme values and make the feature more normally distributed'}]
+2025-08-16 09:44:41,392 - INFO - Extracted Metadata: {'L-Weight': 'Left-Weight: 5 (1, 2, 3, 4, 5)', 'L-Distance': 'Left-Distance: 5 (1, 2, 3, 4, 5)', 'R-Weight': 'Right-Weight: 5 (1, 2, 3, 4, 5)', 'R-Distance': 'Right-Distance: 5 (1, 2, 3, 4, 5)', 'torque_sum': 'Sum of left and right torques, capturing total system energy which may interact with imbalance direction', 'torque_abs_diff': 'Absolute value of torque difference, measuring imbalance magnitude regardless of direction', 'log_torque_ratio': 'Logarithm of torque ratio to handle extreme values and make the feature more normally distributed'}
+2025-08-16 09:45:45,394 - INFO - new_val_acc = 1.0
+2025-08-16 09:46:48,248 - INFO - sel_val_acc = 1.0
+2025-08-16 09:46:48,253 - INFO - Time used for iteration 2: 142.21 seconds
+2025-08-16 09:46:48,254 - INFO - Total token usage = 2852
+2025-08-16 09:46:48,254 - INFO - ========== Iteration 3/10 ==========
+2025-08-16 09:46:48,279 - INFO - Initial prompt: You are an expert datascientist working to improve predictions. 
+You perform feature engineering that generate additional columns that are useful for a downstream task.
+
+Task: This data set was generated to model psychological experimental results. Each example is classified as having the balance scale tip to the right, tip to the left, or be balanced. The attributes are the left weight, the left distance, the right weight, and the right distance. The correct way to find the class is the greater of (left-distance * left-weight) and (right-distance * right-weight). If they are equal, it is balanced.
+
+Features:
+- L-Weight: Left-Weight: 5 (1, 2, 3, 4, 5) (numerical), range = [1, 5], Q1 = 2.0, Median = 3.0, Q3 = 4.0, Mean = 2.9867, Std = 1.4357
+- L-Distance: Left-Distance: 5 (1, 2, 3, 4, 5) (numerical), range = [1, 5], Q1 = 2.0, Median = 3.0, Q3 = 4.0, Mean = 3.0773, Std = 1.4318
+- R-Weight: Right-Weight: 5 (1, 2, 3, 4, 5) (numerical), range = [1, 5], Q1 = 2.0, Median = 3.0, Q3 = 4.0, Mean = 3.0267, Std = 1.4196
+- R-Distance: Right-Distance: 5 (1, 2, 3, 4, 5) (numerical), range = [1, 5], Q1 = 2.0, Median = 3.0, Q3 = 4.0, Mean = 2.9787, Std = 1.4403
+- left_torque:  (numerical), range = [1, 25], Q1 = 4.0, Median = 8.0, Q3 = 15.0, Mean = 9.1493, Std = 6.4608
+- right_torque:  (numerical), range = [1, 25], Q1 = 4.0, Median = 8.0, Q3 = 12.0, Mean = 9.0187, Std = 6.3807
+- torque_diff:  (numerical), range = [-24, 23], Q1 = -6.0, Median = 0.0, Q3 = 6.0, Mean = 0.1307, Std = 9.3909
+- torque_ratio:  (numerical), range = [0.0399999984, 19.999980000020003], Q1 = 0.499999750000125, Median = 0.9999998888889012, Q3 = 2.499998750000625, Mean = 1.9678, Std = 2.6699
+- torque_sum: Sum of left and right torques, capturing total system energy which may interact with imbalance direction (numerical), range = [3, 50], Q1 = 11.0, Median = 17.0, Q3 = 24.0, Mean = 18.1680, Std = 8.7592
+- torque_abs_diff: Absolute value of torque difference, measuring imbalance magnitude regardless of direction (numerical), range = [0, 24], Q1 = 2.0, Median = 6.0, Q3 = 11.0, Mean = 7.2560, Std = 5.9511
+- log_torque_ratio: Logarithm of torque ratio to handle extreme values and make the feature more normally distributed (numerical), range = [-3.218850865179696, 2.99573132355454], Q1 = -0.6931456805608203, Median = 8.888885060900691e-07, Q3 = 0.9162906318744, Mean = 0.0165, Std = 1.1822
+
+Data Examples:
+L-Weight is 4.0. L-Distance is 1.0. R-Weight is 1.0. R-Distance is 4.0. left_torque is 4.0. right_torque is 4.0. torque_diff is 0.0. torque_ratio is 0.9999997500000624. torque_sum is 8.0. torque_abs_diff is 0.0. log_torque_ratio is 7.499997810274167e-07.
+Answer: 0.0
+L-Weight is 3.0. L-Distance is 2.0. R-Weight is 1.0. R-Distance is 1.0. left_torque is 6.0. right_torque is 1.0. torque_diff is 5.0. torque_ratio is 5.999994000006001. torque_sum is 7.0. torque_abs_diff is 5.0. log_torque_ratio is 1.7917586358953743.
+Answer: 1.0
+L-Weight is 3.0. L-Distance is 4.0. R-Weight is 5.0. R-Distance is 3.0. left_torque is 12.0. right_torque is 15.0. torque_diff is -3.0. torque_ratio is 0.7999999466666703. torque_sum is 27.0. torque_abs_diff is 3.0. log_torque_ratio is -0.223142367981572.
+Answer: 2.0
+
+
+Operators:
+square, sqrt, cosine, sine, tangent, exp, cube, log, reciprocal, sigmoid, abs, negate, zscore, minmax, rank, bin, one_hot, label_encode, extract_time, is_weekend, elapsed_time, plus, subtract, multiply, divide, mod, equal, greater, less, max, min, cross, concat, ratio, diff, bin
+rolling_mean, lag, cumsum, groupbythenmean, groupbythenmin, groupbythenmax, groupbythenmedian, groupbythenstd, groupbythenrank, target_encoding
+
+2025-08-16 09:46:48,471 - INFO - HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2025-08-16 09:47:04,220 - INFO - Token Usage:{'prompt_tokens': 1616, 'completion_tokens': 356, 'total_tokens': 1972}
+2025-08-16 09:47:04,221 - INFO - LLM Output: Here are three potential feature engineering steps that could improve the downstream model's performance, along with their reasoning:
+
+1. <torque_product><multiply><left_torque><right_torque><Product of left and right torques, capturing interaction effect between both sides' forces>
+   - Reasoning: The product of left and right torques may reveal non-linear interactions that aren't captured by simple differences or ratios. This could help identify cases where both torques are large (potentially indicating a more stable system) versus cases where one is large and the other small (clear imbalance).
+
+2. <log_torque_sum><log><torque_sum><Logarithm of total torque sum to handle scale effects and make extreme values less influential>
+   - Reasoning: The torque sum has a wide range (3-50). Taking the log will compress this range and make the feature more normally distributed, which could help linear models and make the scale more comparable to other features like log_torque_ratio.
+
+3. <torque_imbalance_ratio><divide><torque_abs_diff><torque_sum><Ratio of absolute torque difference to total torque, measuring relative imbalance strength>
+   - Reasoning: While torque_abs_diff shows absolute imbalance, dividing by torque_sum creates a normalized measure of imbalance relative to the total system energy. A difference of 5 means more in a system with torque_sum=10 than in one with torque_sum=50.
+
+These features add:
+1) An interaction term between the two main torque values
+2) A normalized version of the total system energy
+3) A relative measure of imbalance strength
+
+All three maintain the physical interpretability of the system while potentially providing more discriminative power for the classification task.
+2025-08-16 09:47:04,318 - INFO - Success Operators:
+[{'new_feature_name': 'torque_product', 'operator': 'multiply', 'feature1': 'left_torque', 'feature2': 'right_torque', 'description': "Product of left and right torques, capturing interaction effect between both sides' forces"}, {'new_feature_name': 'log_torque_sum', 'operator': 'log', 'feature1': 'torque_sum', 'feature2': None, 'description': 'Logarithm of total torque sum to handle scale effects and make extreme values less influential'}, {'new_feature_name': 'torque_imbalance_ratio', 'operator': 'divide', 'feature1': 'torque_abs_diff', 'feature2': 'torque_sum', 'description': 'Ratio of absolute torque difference to total torque, measuring relative imbalance strength'}]
+2025-08-16 09:47:04,322 - INFO - Extracted Metadata: {'L-Weight': 'Left-Weight: 5 (1, 2, 3, 4, 5)', 'L-Distance': 'Left-Distance: 5 (1, 2, 3, 4, 5)', 'R-Weight': 'Right-Weight: 5 (1, 2, 3, 4, 5)', 'R-Distance': 'Right-Distance: 5 (1, 2, 3, 4, 5)', 'torque_product': "Product of left and right torques, capturing interaction effect between both sides' forces", 'log_torque_sum': 'Logarithm of total torque sum to handle scale effects and make extreme values less influential', 'torque_imbalance_ratio': 'Ratio of absolute torque difference to total torque, measuring relative imbalance strength'}
+2025-08-16 09:48:10,031 - INFO - new_val_acc = 1.0
+2025-08-16 09:49:16,167 - INFO - sel_val_acc = 1.0
+2025-08-16 09:49:16,176 - INFO - Time used for iteration 3: 147.92 seconds
+2025-08-16 09:49:16,176 - INFO - Total token usage = 4824
+2025-08-16 09:49:16,176 - INFO - ========== Iteration 4/10 ==========
+2025-08-16 09:49:16,208 - INFO - Initial prompt: You are an expert datascientist working to improve predictions. 
+You perform feature engineering that generate additional columns that are useful for a downstream task.
+
+Task: This data set was generated to model psychological experimental results. Each example is classified as having the balance scale tip to the right, tip to the left, or be balanced. The attributes are the left weight, the left distance, the right weight, and the right distance. The correct way to find the class is the greater of (left-distance * left-weight) and (right-distance * right-weight). If they are equal, it is balanced.
+
+Features:
+- L-Weight: Left-Weight: 5 (1, 2, 3, 4, 5) (numerical), range = [1, 5], Q1 = 2.0, Median = 3.0, Q3 = 4.0, Mean = 2.9867, Std = 1.4357
+- L-Distance: Left-Distance: 5 (1, 2, 3, 4, 5) (numerical), range = [1, 5], Q1 = 2.0, Median = 3.0, Q3 = 4.0, Mean = 3.0773, Std = 1.4318
+- R-Weight: Right-Weight: 5 (1, 2, 3, 4, 5) (numerical), range = [1, 5], Q1 = 2.0, Median = 3.0, Q3 = 4.0, Mean = 3.0267, Std = 1.4196
+- R-Distance: Right-Distance: 5 (1, 2, 3, 4, 5) (numerical), range = [1, 5], Q1 = 2.0, Median = 3.0, Q3 = 4.0, Mean = 2.9787, Std = 1.4403
+- left_torque:  (numerical), range = [1, 25], Q1 = 4.0, Median = 8.0, Q3 = 15.0, Mean = 9.1493, Std = 6.4608
+- right_torque:  (numerical), range = [1, 25], Q1 = 4.0, Median = 8.0, Q3 = 12.0, Mean = 9.0187, Std = 6.3807
+- torque_diff:  (numerical), range = [-24, 23], Q1 = -6.0, Median = 0.0, Q3 = 6.0, Mean = 0.1307, Std = 9.3909
+- torque_ratio:  (numerical), range = [0.0399999984, 19.999980000020003], Q1 = 0.499999750000125, Median = 0.9999998888889012, Q3 = 2.499998750000625, Mean = 1.9678, Std = 2.6699
+- torque_sum:  (numerical), range = [3, 50], Q1 = 11.0, Median = 17.0, Q3 = 24.0, Mean = 18.1680, Std = 8.7592
+- torque_abs_diff:  (numerical), range = [0, 24], Q1 = 2.0, Median = 6.0, Q3 = 11.0, Mean = 7.2560, Std = 5.9511
+- log_torque_ratio:  (numerical), range = [-3.218850865179696, 2.99573132355454], Q1 = -0.6931456805608203, Median = 8.888885060900691e-07, Q3 = 0.9162906318744, Mean = 0.0165, Std = 1.1822
+- torque_product: Product of left and right torques, capturing interaction effect between both sides' forces (numerical), range = [2, 625], Q1 = 24.0, Median = 50.0, Q3 = 100.0, Mean = 79.6560, Std = 88.0584
+- log_torque_sum: Logarithm of total torque sum to handle scale effects and make extreme values less influential (numerical), range = [1.0986126220013874, 3.912023025428146], Q1 = 2.397895363707457, Median = 2.8332134028797435, Q3 = 3.1780538720146114, Mean = 2.7684, Std = 0.5426
+- torque_imbalance_ratio: Ratio of absolute torque difference to total torque, measuring relative imbalance strength (numerical), range = [0.0, 0.9230768875739658], Q1 = 0.199999960000008, Median = 0.4117646816609011, Q3 = 0.5999999730000012, Mean = 0.3999, Std = 0.2547
+
+Data Examples:
+L-Weight is 4.0. L-Distance is 1.0. R-Weight is 1.0. R-Distance is 4.0. left_torque is 4.0. right_torque is 4.0. torque_diff is 0.0. torque_ratio is 0.9999997500000624. torque_sum is 8.0. torque_abs_diff is 0.0. log_torque_ratio is 7.499997810274167e-07. torque_product is 16.0. log_torque_sum is 2.079441666679828. torque_imbalance_ratio is 0.0.
+Answer: 0.0
+L-Weight is 3.0. L-Distance is 2.0. R-Weight is 1.0. R-Distance is 1.0. left_torque is 6.0. right_torque is 1.0. torque_diff is 5.0. torque_ratio is 5.999994000006001. torque_sum is 7.0. torque_abs_diff is 5.0. log_torque_ratio is 1.7917586358953743. torque_product is 6.0. log_torque_sum is 1.9459102919124456. torque_imbalance_ratio is 0.7142856122449125.
+Answer: 1.0
+L-Weight is 3.0. L-Distance is 4.0. R-Weight is 5.0. R-Distance is 3.0. left_torque is 12.0. right_torque is 15.0. torque_diff is -3.0. torque_ratio is 0.7999999466666703. torque_sum is 27.0. torque_abs_diff is 3.0. log_torque_ratio is -0.223142367981572. torque_product is 180.0. log_torque_sum is 3.295836903041365. torque_imbalance_ratio is 0.1111111069958849.
+Answer: 2.0
+
+
+Operators:
+square, sqrt, cosine, sine, tangent, exp, cube, log, reciprocal, sigmoid, abs, negate, zscore, minmax, rank, bin, one_hot, label_encode, extract_time, is_weekend, elapsed_time, plus, subtract, multiply, divide, mod, equal, greater, less, max, min, cross, concat, ratio, diff, bin
+rolling_mean, lag, cumsum, groupbythenmean, groupbythenmin, groupbythenmax, groupbythenmedian, groupbythenstd, groupbythenrank, target_encoding
+
+2025-08-16 09:49:16,434 - INFO - HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2025-08-16 09:49:33,299 - INFO - Token Usage:{'prompt_tokens': 1956, 'completion_tokens': 356, 'total_tokens': 2312}
+2025-08-16 09:49:33,300 - INFO - LLM Output: Here are 3 potential feature engineering steps that could improve the downstream model's performance, along with their reasoning:
+
+1. <torque_diff_squared><square><torque_diff><Squared torque difference to amplify larger imbalances while preserving sign information>
+   - Reasoning: Squaring the torque difference will make larger imbalances more prominent while maintaining the directional information (positive/negative). This could help the model better distinguish between significant vs minor imbalances.
+
+2. <torque_imbalance_ratio_sigmoid><sigmoid><torque_imbalance_ratio><Sigmoid-transformed imbalance ratio to bound values between 0-1 and handle extreme cases>
+   - Reasoning: Applying sigmoid to the imbalance ratio will bound the values between 0-1, which can be helpful for model training. It will also compress extreme values while maintaining the relative ordering, potentially making the feature more robust.
+
+3. <torque_product_log><log><torque_product><Logarithm of torque product to handle the wide range and exponential nature of the product>
+   - Reasoning: The torque product has a very wide range (2-625). Taking the log will compress this range while preserving the multiplicative relationships between values. This can help models that are sensitive to feature scales.
+
+These features were chosen because:
+1. They create non-linear transformations that may capture relationships the original features didn't
+2. They handle the wide ranges and extreme values present in some features
+3. They maintain interpretable relationships to the underlying physics of the problem
+4. They provide alternative representations that might be more amenable to different model types
+
+The squared difference and log transform are particularly useful given the multiplicative nature of the underlying torque calculation, while the sigmoid transform helps normalize the imbalance ratio feature.
+2025-08-16 09:49:33,313 - INFO - Success Operators:
+[{'new_feature_name': 'torque_diff_squared', 'operator': 'square', 'feature1': 'torque_diff', 'feature2': None, 'description': 'Squared torque difference to amplify larger imbalances while preserving sign information'}, {'new_feature_name': 'torque_imbalance_ratio_sigmoid', 'operator': 'sigmoid', 'feature1': 'torque_imbalance_ratio', 'feature2': None, 'description': 'Sigmoid-transformed imbalance ratio to bound values between 0-1 and handle extreme cases'}, {'new_feature_name': 'torque_product_log', 'operator': 'log', 'feature1': 'torque_product', 'feature2': None, 'description': 'Logarithm of torque product to handle the wide range and exponential nature of the product'}]
+2025-08-16 09:49:33,318 - INFO - Extracted Metadata: {'L-Weight': 'Left-Weight: 5 (1, 2, 3, 4, 5)', 'L-Distance': 'Left-Distance: 5 (1, 2, 3, 4, 5)', 'R-Weight': 'Right-Weight: 5 (1, 2, 3, 4, 5)', 'R-Distance': 'Right-Distance: 5 (1, 2, 3, 4, 5)', 'torque_diff_squared': 'Squared torque difference to amplify larger imbalances while preserving sign information', 'torque_imbalance_ratio_sigmoid': 'Sigmoid-transformed imbalance ratio to bound values between 0-1 and handle extreme cases', 'torque_product_log': 'Logarithm of torque product to handle the wide range and exponential nature of the product'}
+2025-08-16 09:50:38,546 - INFO - new_val_acc = 1.0
+2025-08-16 09:51:44,258 - INFO - sel_val_acc = 1.0
+2025-08-16 09:51:44,302 - INFO - Time used for iteration 4: 148.13 seconds
+2025-08-16 09:51:44,303 - INFO - Total token usage = 7136
+2025-08-16 09:51:44,303 - INFO - ========== Iteration 5/10 ==========
+2025-08-16 09:51:44,342 - INFO - Initial prompt: You are an expert datascientist working to improve predictions. 
+You perform feature engineering that generate additional columns that are useful for a downstream task.
+
+Task: This data set was generated to model psychological experimental results. Each example is classified as having the balance scale tip to the right, tip to the left, or be balanced. The attributes are the left weight, the left distance, the right weight, and the right distance. The correct way to find the class is the greater of (left-distance * left-weight) and (right-distance * right-weight). If they are equal, it is balanced.
+
+Features:
+- L-Weight: Left-Weight: 5 (1, 2, 3, 4, 5) (numerical), range = [1, 5], Q1 = 2.0, Median = 3.0, Q3 = 4.0, Mean = 2.9867, Std = 1.4357
+- L-Distance: Left-Distance: 5 (1, 2, 3, 4, 5) (numerical), range = [1, 5], Q1 = 2.0, Median = 3.0, Q3 = 4.0, Mean = 3.0773, Std = 1.4318
+- R-Weight: Right-Weight: 5 (1, 2, 3, 4, 5) (numerical), range = [1, 5], Q1 = 2.0, Median = 3.0, Q3 = 4.0, Mean = 3.0267, Std = 1.4196
+- R-Distance: Right-Distance: 5 (1, 2, 3, 4, 5) (numerical), range = [1, 5], Q1 = 2.0, Median = 3.0, Q3 = 4.0, Mean = 2.9787, Std = 1.4403
+- left_torque:  (numerical), range = [1, 25], Q1 = 4.0, Median = 8.0, Q3 = 15.0, Mean = 9.1493, Std = 6.4608
+- right_torque:  (numerical), range = [1, 25], Q1 = 4.0, Median = 8.0, Q3 = 12.0, Mean = 9.0187, Std = 6.3807
+- torque_diff:  (numerical), range = [-24, 23], Q1 = -6.0, Median = 0.0, Q3 = 6.0, Mean = 0.1307, Std = 9.3909
+- torque_ratio:  (numerical), range = [0.0399999984, 19.999980000020003], Q1 = 0.499999750000125, Median = 0.9999998888889012, Q3 = 2.499998750000625, Mean = 1.9678, Std = 2.6699
+- torque_sum:  (numerical), range = [3, 50], Q1 = 11.0, Median = 17.0, Q3 = 24.0, Mean = 18.1680, Std = 8.7592
+- torque_abs_diff:  (numerical), range = [0, 24], Q1 = 2.0, Median = 6.0, Q3 = 11.0, Mean = 7.2560, Std = 5.9511
+- log_torque_ratio:  (numerical), range = [-3.218850865179696, 2.99573132355454], Q1 = -0.6931456805608203, Median = 8.888885060900691e-07, Q3 = 0.9162906318744, Mean = 0.0165, Std = 1.1822
+- torque_product:  (numerical), range = [2, 625], Q1 = 24.0, Median = 50.0, Q3 = 100.0, Mean = 79.6560, Std = 88.0584
+- log_torque_sum:  (numerical), range = [1.0986126220013874, 3.912023025428146], Q1 = 2.397895363707457, Median = 2.8332134028797435, Q3 = 3.1780538720146114, Mean = 2.7684, Std = 0.5426
+- torque_imbalance_ratio:  (numerical), range = [0.0, 0.9230768875739658], Q1 = 0.199999960000008, Median = 0.4117646816609011, Q3 = 0.5999999730000012, Mean = 0.3999, Std = 0.2547
+- torque_diff_squared: Squared torque difference to amplify larger imbalances while preserving sign information (numerical), range = [0, 576], Q1 = 4.0, Median = 36.0, Q3 = 121.0, Mean = 87.9707, Std = 121.0521
+- torque_imbalance_ratio_sigmoid: Sigmoid-transformed imbalance ratio to bound values between 0-1 and handle extreme cases (numerical), range = [0.5, 0.7156686277134006], Q1 = 0.549833987411817, Median = 0.601510940827612, Q3 = 0.6456563000486213, Mean = 0.5971, Std = 0.0605
+- torque_product_log: Logarithm of torque product to handle the wide range and exponential nature of the product (numerical), range = [0.6931476805598203, 6.437751651336401], Q1 = 3.1780538720146114, Median = 3.912023025428146, Q3 = 4.605170195988091, Mean = 3.8418, Std = 1.1093
+
+Data Examples:
+L-Weight is 4.0. L-Distance is 1.0. R-Weight is 1.0. R-Distance is 4.0. left_torque is 4.0. right_torque is 4.0. torque_diff is 0.0. torque_ratio is 0.9999997500000624. torque_sum is 8.0. torque_abs_diff is 0.0. log_torque_ratio is 7.499997810274167e-07. torque_product is 16.0. log_torque_sum is 2.079441666679828. torque_imbalance_ratio is 0.0. torque_diff_squared is 0.0. torque_imbalance_ratio_sigmoid is 0.5. torque_product_log is 2.772588784739779.
+Answer: 0.0
+L-Weight is 3.0. L-Distance is 2.0. R-Weight is 1.0. R-Distance is 1.0. left_torque is 6.0. right_torque is 1.0. torque_diff is 5.0. torque_ratio is 5.999994000006001. torque_sum is 7.0. torque_abs_diff is 5.0. log_torque_ratio is 1.7917586358953743. torque_product is 6.0. log_torque_sum is 1.9459102919124456. torque_imbalance_ratio is 0.7142856122449125. torque_diff_squared is 25.0. torque_imbalance_ratio_sigmoid is 0.671347430968442. torque_product_log is 1.7917596358947077.
+Answer: 1.0
+L-Weight is 3.0. L-Distance is 4.0. R-Weight is 5.0. R-Distance is 3.0. left_torque is 12.0. right_torque is 15.0. torque_diff is -3.0. torque_ratio is 0.7999999466666703. torque_sum is 27.0. torque_abs_diff is 3.0. log_torque_ratio is -0.223142367981572. torque_product is 180.0. log_torque_sum is 3.295836903041365. torque_imbalance_ratio is 0.1111111069958849. torque_diff_squared is 9.0. torque_imbalance_ratio_sigmoid is 0.5277492340288754. torque_product_log is 5.1929568564457655.
+Answer: 2.0
+
+
+Operators:
+square, sqrt, cosine, sine, tangent, exp, cube, log, reciprocal, sigmoid, abs, negate, zscore, minmax, rank, bin, one_hot, label_encode, extract_time, is_weekend, elapsed_time, plus, subtract, multiply, divide, mod, equal, greater, less, max, min, cross, concat, ratio, diff, bin
+rolling_mean, lag, cumsum, groupbythenmean, groupbythenmin, groupbythenmax, groupbythenmedian, groupbythenstd, groupbythenrank, target_encoding
+
+2025-08-16 09:51:44,524 - INFO - HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2025-08-16 09:52:02,175 - INFO - Token Usage:{'prompt_tokens': 2308, 'completion_tokens': 388, 'total_tokens': 2696}
+2025-08-16 09:52:02,175 - INFO - LLM Output: Here are three potential feature engineering steps that could improve the downstream model's performance, along with their reasoning:
+
+1. <torque_diff_cubed><cube><torque_diff><Cubed torque difference to amplify the effect of large imbalances while preserving directionality (sign) information>
+   - Reasoning: While we already have torque_diff_squared, cubing the difference will further emphasize extreme imbalances while maintaining the directional information (positive/negative). This could help the model better distinguish between cases with similar absolute differences but different directions.
+
+2. <torque_ratio_logistic><sigmoid><log_torque_ratio><Sigmoid transform of log torque ratio to bound values between 0-1 and handle extreme ratios>
+   - Reasoning: The log_torque_ratio currently has a wide range (-3.2 to 3.0). Applying a sigmoid function will bound this to (0,1) while maintaining the relative ordering, which could help with model stability and interpretation. The sigmoid will also compress extreme values, making the feature more robust to outliers.
+
+3. <torque_imbalance_ratio_sqrt><sqrt><torque_imbalance_ratio><Square root of imbalance ratio to reduce skewness while maintaining relative differences>
+   - Reasoning: The torque_imbalance_ratio currently ranges from 0 to 0.92. Taking the square root will help normalize the distribution (reducing right skew) while preserving the ordinal relationships between values. This transformation often works well with ratios bounded between 0-1.
+
+These transformations were chosen because:
+1) They create non-linear relationships that might better capture the underlying physics of the balance scale problem
+2) They handle extreme values gracefully while maintaining interpretability
+3) They complement existing features by providing alternative representations of similar information
+4) They maintain the directional information that's crucial for this problem (left vs right tipping)
+2025-08-16 09:52:02,187 - INFO - Success Operators:
+[{'new_feature_name': 'torque_diff_cubed', 'operator': 'cube', 'feature1': 'torque_diff', 'feature2': None, 'description': 'Cubed torque difference to amplify the effect of large imbalances while preserving directionality (sign) information'}, {'new_feature_name': 'torque_ratio_logistic', 'operator': 'sigmoid', 'feature1': 'log_torque_ratio', 'feature2': None, 'description': 'Sigmoid transform of log torque ratio to bound values between 0-1 and handle extreme ratios'}, {'new_feature_name': 'torque_imbalance_ratio_sqrt', 'operator': 'sqrt', 'feature1': 'torque_imbalance_ratio', 'feature2': None, 'description': 'Square root of imbalance ratio to reduce skewness while maintaining relative differences'}]
+2025-08-16 09:52:02,191 - INFO - Extracted Metadata: {'L-Weight': 'Left-Weight: 5 (1, 2, 3, 4, 5)', 'L-Distance': 'Left-Distance: 5 (1, 2, 3, 4, 5)', 'R-Weight': 'Right-Weight: 5 (1, 2, 3, 4, 5)', 'R-Distance': 'Right-Distance: 5 (1, 2, 3, 4, 5)', 'torque_diff_cubed': 'Cubed torque difference to amplify the effect of large imbalances while preserving directionality (sign) information', 'torque_ratio_logistic': 'Sigmoid transform of log torque ratio to bound values between 0-1 and handle extreme ratios', 'torque_imbalance_ratio_sqrt': 'Square root of imbalance ratio to reduce skewness while maintaining relative differences'}
+2025-08-16 09:53:12,109 - INFO - new_val_acc = 1.0
+2025-08-16 09:54:20,802 - INFO - sel_val_acc = 1.0
+2025-08-16 09:54:20,811 - INFO - Time used for iteration 5: 156.51 seconds
+2025-08-16 09:54:20,811 - INFO - Total token usage = 9832
+2025-08-16 09:54:20,811 - INFO - ========== Iteration 6/10 ==========
+2025-08-16 09:54:20,847 - INFO - Initial prompt: You are an expert datascientist working to improve predictions. 
+You perform feature engineering that generate additional columns that are useful for a downstream task.
+
+Task: This data set was generated to model psychological experimental results. Each example is classified as having the balance scale tip to the right, tip to the left, or be balanced. The attributes are the left weight, the left distance, the right weight, and the right distance. The correct way to find the class is the greater of (left-distance * left-weight) and (right-distance * right-weight). If they are equal, it is balanced.
+
+Features:
+- L-Weight: Left-Weight: 5 (1, 2, 3, 4, 5) (numerical), range = [1, 5], Q1 = 2.0, Median = 3.0, Q3 = 4.0, Mean = 2.9867, Std = 1.4357
+- L-Distance: Left-Distance: 5 (1, 2, 3, 4, 5) (numerical), range = [1, 5], Q1 = 2.0, Median = 3.0, Q3 = 4.0, Mean = 3.0773, Std = 1.4318
+- R-Weight: Right-Weight: 5 (1, 2, 3, 4, 5) (numerical), range = [1, 5], Q1 = 2.0, Median = 3.0, Q3 = 4.0, Mean = 3.0267, Std = 1.4196
+- R-Distance: Right-Distance: 5 (1, 2, 3, 4, 5) (numerical), range = [1, 5], Q1 = 2.0, Median = 3.0, Q3 = 4.0, Mean = 2.9787, Std = 1.4403
+- left_torque:  (numerical), range = [1, 25], Q1 = 4.0, Median = 8.0, Q3 = 15.0, Mean = 9.1493, Std = 6.4608
+- right_torque:  (numerical), range = [1, 25], Q1 = 4.0, Median = 8.0, Q3 = 12.0, Mean = 9.0187, Std = 6.3807
+- torque_diff:  (numerical), range = [-24, 23], Q1 = -6.0, Median = 0.0, Q3 = 6.0, Mean = 0.1307, Std = 9.3909
+- torque_ratio:  (numerical), range = [0.0399999984, 19.999980000020003], Q1 = 0.499999750000125, Median = 0.9999998888889012, Q3 = 2.499998750000625, Mean = 1.9678, Std = 2.6699
+- torque_sum:  (numerical), range = [3, 50], Q1 = 11.0, Median = 17.0, Q3 = 24.0, Mean = 18.1680, Std = 8.7592
+- torque_abs_diff:  (numerical), range = [0, 24], Q1 = 2.0, Median = 6.0, Q3 = 11.0, Mean = 7.2560, Std = 5.9511
+- log_torque_ratio:  (numerical), range = [-3.218850865179696, 2.99573132355454], Q1 = -0.6931456805608203, Median = 8.888885060900691e-07, Q3 = 0.9162906318744, Mean = 0.0165, Std = 1.1822
+- torque_product:  (numerical), range = [2, 625], Q1 = 24.0, Median = 50.0, Q3 = 100.0, Mean = 79.6560, Std = 88.0584
+- log_torque_sum:  (numerical), range = [1.0986126220013874, 3.912023025428146], Q1 = 2.397895363707457, Median = 2.8332134028797435, Q3 = 3.1780538720146114, Mean = 2.7684, Std = 0.5426
+- torque_imbalance_ratio:  (numerical), range = [0.0, 0.9230768875739658], Q1 = 0.199999960000008, Median = 0.4117646816609011, Q3 = 0.5999999730000012, Mean = 0.3999, Std = 0.2547
+- torque_diff_squared:  (numerical), range = [0, 576], Q1 = 4.0, Median = 36.0, Q3 = 121.0, Mean = 87.9707, Std = 121.0521
+- torque_imbalance_ratio_sigmoid:  (numerical), range = [0.5, 0.7156686277134006], Q1 = 0.549833987411817, Median = 0.601510940827612, Q3 = 0.6456563000486213, Mean = 0.5971, Std = 0.0605
+- torque_product_log:  (numerical), range = [0.6931476805598203, 6.437751651336401], Q1 = 3.1780538720146114, Median = 3.912023025428146, Q3 = 4.605170195988091, Mean = 3.8418, Std = 1.1093
+- torque_diff_cubed: Cubed torque difference to amplify the effect of large imbalances while preserving directionality (sign) information (numerical), range = [-13824, 12167], Q1 = -216.0, Median = 0.0, Q3 = 216.0, Mean = -15.8053, Std = 2799.2337
+- torque_ratio_logistic: Sigmoid transform of log torque ratio to bound values between 0-1 and handle extreme ratios (numerical), range = [0.0384624615375754, 0.9523809092970584], Q1 = 0.3333336666665555, Median = 0.5000002222221266, Q3 = 0.7142856938776005, Mean = 0.5036, Std = 0.2373
+- torque_imbalance_ratio_sqrt: Square root of imbalance ratio to reduce skewness while maintaining relative differences (numerical), range = [0.0, 0.9607689043541978], Q1 = 0.4472135507786051, Median = 0.6416889290465444, Q3 = 0.7745966518130589, Mean = 0.5802, Std = 0.2518
+
+Data Examples:
+L-Weight is 4.0. L-Distance is 1.0. R-Weight is 1.0. R-Distance is 4.0. left_torque is 4.0. right_torque is 4.0. torque_diff is 0.0. torque_ratio is 0.9999997500000624. torque_sum is 8.0. torque_abs_diff is 0.0. log_torque_ratio is 7.499997810274167e-07. torque_product is 16.0. log_torque_sum is 2.079441666679828. torque_imbalance_ratio is 0.0. torque_diff_squared is 0.0. torque_imbalance_ratio_sigmoid is 0.5. torque_product_log is 2.772588784739779. torque_diff_cubed is 0.0. torque_ratio_logistic is 0.5000001874999452. torque_imbalance_ratio_sqrt is 0.0.
+Answer: 0.0
+L-Weight is 3.0. L-Distance is 2.0. R-Weight is 1.0. R-Distance is 1.0. left_torque is 6.0. right_torque is 1.0. torque_diff is 5.0. torque_ratio is 5.999994000006001. torque_sum is 7.0. torque_abs_diff is 5.0. log_torque_ratio is 1.7917586358953743. torque_product is 6.0. log_torque_sum is 1.9459102919124456. torque_imbalance_ratio is 0.7142856122449125. torque_diff_squared is 25.0. torque_imbalance_ratio_sigmoid is 0.671347430968442. torque_product_log is 1.7917596358947077. torque_diff_cubed is 125.0. torque_ratio_logistic is 0.8571427551020903. torque_imbalance_ratio_sqrt is 0.845154194360362.
+Answer: 1.0
+L-Weight is 3.0. L-Distance is 4.0. R-Weight is 5.0. R-Distance is 3.0. left_torque is 12.0. right_torque is 15.0. torque_diff is -3.0. torque_ratio is 0.7999999466666703. torque_sum is 27.0. torque_abs_diff is 3.0. log_torque_ratio is -0.223142367981572. torque_product is 180.0. log_torque_sum is 3.295836903041365. torque_imbalance_ratio is 0.1111111069958849. torque_diff_squared is 9.0. torque_imbalance_ratio_sigmoid is 0.5277492340288754. torque_product_log is 5.1929568564457655. torque_diff_cubed is -27.0. torque_ratio_logistic is 0.4444447366253619. torque_imbalance_ratio_sqrt is 0.3333333271604939.
+Answer: 2.0
+
+
+Operators:
+square, sqrt, cosine, sine, tangent, exp, cube, log, reciprocal, sigmoid, abs, negate, zscore, minmax, rank, bin, one_hot, label_encode, extract_time, is_weekend, elapsed_time, plus, subtract, multiply, divide, mod, equal, greater, less, max, min, cross, concat, ratio, diff, bin
+rolling_mean, lag, cumsum, groupbythenmean, groupbythenmin, groupbythenmax, groupbythenmedian, groupbythenstd, groupbythenrank, target_encoding
+
+2025-08-16 09:54:21,069 - INFO - HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2025-08-16 09:54:39,398 - INFO - Token Usage:{'prompt_tokens': 2682, 'completion_tokens': 415, 'total_tokens': 3097}
+2025-08-16 09:54:39,399 - INFO - LLM Output: Here are three potential feature engineering steps that could improve the downstream model's performance, along with their reasoning:
+
+1. <torque_diff_abs_log><log><torque_abs_diff><Logarithm of absolute torque difference to handle large imbalances while reducing skewness>
+   - Reasoning: The torque_abs_diff feature has a wide range (0-24) and is right-skewed. Taking the log will compress the scale and make the distribution more symmetric, which can help linear models or distance-based algorithms better capture the relationship between imbalance magnitude and the target. This is especially useful since the target is directly derived from torque differences.
+
+2. <torque_sum_sqrt><sqrt><torque_sum><Square root of torque sum to reduce the impact of very large combined torques>
+   - Reasoning: The torque_sum feature ranges from 3 to 50, and its distribution might benefit from variance stabilization. The square root transform will reduce the dominance of extremely large torque sums while preserving the ordinal relationships. This can help models better utilize the total system energy information.
+
+3. <torque_ratio_sigmoid><sigmoid><log_torque_ratio><Sigmoid transform of log torque ratio to bound extreme values between 0-1>
+   - Reasoning: While torque_ratio_logistic exists, it's based on the raw ratio. Using the already log-transformed ratio as input to sigmoid will create a feature that's especially sensitive to small ratio changes near 1 (balanced state) while saturating for extreme imbalances. This matches the physical intuition that small imbalances near the tipping point are most discriminative.
+
+These features were chosen because:
+1) They address specific distributional issues in existing features (skewness, scale)
+2) They create non-linear transformations that can help linear models capture complex relationships
+3) They maintain physical interpretability of the balance scale problem
+4) They complement existing features by providing alternative representations of similar concepts
+2025-08-16 09:54:39,406 - INFO - Success Operators:
+[{'new_feature_name': 'torque_diff_abs_log', 'operator': 'log', 'feature1': 'torque_abs_diff', 'feature2': None, 'description': 'Logarithm of absolute torque difference to handle large imbalances while reducing skewness'}, {'new_feature_name': 'torque_sum_sqrt', 'operator': 'sqrt', 'feature1': 'torque_sum', 'feature2': None, 'description': 'Square root of torque sum to reduce the impact of very large combined torques'}, {'new_feature_name': 'torque_ratio_sigmoid', 'operator': 'sigmoid', 'feature1': 'log_torque_ratio', 'feature2': None, 'description': 'Sigmoid transform of log torque ratio to bound extreme values between 0-1'}]
+2025-08-16 09:54:39,410 - INFO - Extracted Metadata: {'L-Weight': 'Left-Weight: 5 (1, 2, 3, 4, 5)', 'L-Distance': 'Left-Distance: 5 (1, 2, 3, 4, 5)', 'R-Weight': 'Right-Weight: 5 (1, 2, 3, 4, 5)', 'R-Distance': 'Right-Distance: 5 (1, 2, 3, 4, 5)', 'torque_diff_abs_log': 'Logarithm of absolute torque difference to handle large imbalances while reducing skewness', 'torque_sum_sqrt': 'Square root of torque sum to reduce the impact of very large combined torques', 'torque_ratio_sigmoid': 'Sigmoid transform of log torque ratio to bound extreme values between 0-1'}
+2025-08-16 09:55:44,738 - INFO - new_val_acc = 1.0
+2025-08-16 09:56:53,281 - INFO - sel_val_acc = 1.0
+2025-08-16 09:56:53,291 - INFO - Time used for iteration 6: 152.48 seconds
+2025-08-16 09:56:53,292 - INFO - Total token usage = 12929
+2025-08-16 09:56:53,292 - INFO - ========== Iteration 7/10 ==========
+2025-08-16 09:56:53,328 - INFO - Initial prompt: You are an expert datascientist working to improve predictions. 
+You perform feature engineering that generate additional columns that are useful for a downstream task.
+
+Task: This data set was generated to model psychological experimental results. Each example is classified as having the balance scale tip to the right, tip to the left, or be balanced. The attributes are the left weight, the left distance, the right weight, and the right distance. The correct way to find the class is the greater of (left-distance * left-weight) and (right-distance * right-weight). If they are equal, it is balanced.
+
+Features:
+- L-Weight: Left-Weight: 5 (1, 2, 3, 4, 5) (numerical), range = [1, 5], Q1 = 2.0, Median = 3.0, Q3 = 4.0, Mean = 2.9867, Std = 1.4357
+- L-Distance: Left-Distance: 5 (1, 2, 3, 4, 5) (numerical), range = [1, 5], Q1 = 2.0, Median = 3.0, Q3 = 4.0, Mean = 3.0773, Std = 1.4318
+- R-Weight: Right-Weight: 5 (1, 2, 3, 4, 5) (numerical), range = [1, 5], Q1 = 2.0, Median = 3.0, Q3 = 4.0, Mean = 3.0267, Std = 1.4196
+- R-Distance: Right-Distance: 5 (1, 2, 3, 4, 5) (numerical), range = [1, 5], Q1 = 2.0, Median = 3.0, Q3 = 4.0, Mean = 2.9787, Std = 1.4403
+- left_torque:  (numerical), range = [1, 25], Q1 = 4.0, Median = 8.0, Q3 = 15.0, Mean = 9.1493, Std = 6.4608
+- right_torque:  (numerical), range = [1, 25], Q1 = 4.0, Median = 8.0, Q3 = 12.0, Mean = 9.0187, Std = 6.3807
+- torque_diff:  (numerical), range = [-24, 23], Q1 = -6.0, Median = 0.0, Q3 = 6.0, Mean = 0.1307, Std = 9.3909
+- torque_ratio:  (numerical), range = [0.0399999984, 19.999980000020003], Q1 = 0.499999750000125, Median = 0.9999998888889012, Q3 = 2.499998750000625, Mean = 1.9678, Std = 2.6699
+- torque_sum:  (numerical), range = [3, 50], Q1 = 11.0, Median = 17.0, Q3 = 24.0, Mean = 18.1680, Std = 8.7592
+- torque_abs_diff:  (numerical), range = [0, 24], Q1 = 2.0, Median = 6.0, Q3 = 11.0, Mean = 7.2560, Std = 5.9511
+- log_torque_ratio:  (numerical), range = [-3.218850865179696, 2.99573132355454], Q1 = -0.6931456805608203, Median = 8.888885060900691e-07, Q3 = 0.9162906318744, Mean = 0.0165, Std = 1.1822
+- torque_product:  (numerical), range = [2, 625], Q1 = 24.0, Median = 50.0, Q3 = 100.0, Mean = 79.6560, Std = 88.0584
+- log_torque_sum:  (numerical), range = [1.0986126220013874, 3.912023025428146], Q1 = 2.397895363707457, Median = 2.8332134028797435, Q3 = 3.1780538720146114, Mean = 2.7684, Std = 0.5426
+- torque_imbalance_ratio:  (numerical), range = [0.0, 0.9230768875739658], Q1 = 0.199999960000008, Median = 0.4117646816609011, Q3 = 0.5999999730000012, Mean = 0.3999, Std = 0.2547
+- torque_diff_squared:  (numerical), range = [0, 576], Q1 = 4.0, Median = 36.0, Q3 = 121.0, Mean = 87.9707, Std = 121.0521
+- torque_imbalance_ratio_sigmoid:  (numerical), range = [0.5, 0.7156686277134006], Q1 = 0.549833987411817, Median = 0.601510940827612, Q3 = 0.6456563000486213, Mean = 0.5971, Std = 0.0605
+- torque_product_log:  (numerical), range = [0.6931476805598203, 6.437751651336401], Q1 = 3.1780538720146114, Median = 3.912023025428146, Q3 = 4.605170195988091, Mean = 3.8418, Std = 1.1093
+- torque_diff_cubed:  (numerical), range = [-13824, 12167], Q1 = -216.0, Median = 0.0, Q3 = 216.0, Mean = -15.8053, Std = 2799.2337
+- torque_ratio_logistic:  (numerical), range = [0.0384624615375754, 0.9523809092970584], Q1 = 0.3333336666665555, Median = 0.5000002222221266, Q3 = 0.7142856938776005, Mean = 0.5036, Std = 0.2373
+- torque_imbalance_ratio_sqrt:  (numerical), range = [0.0, 0.9607689043541978], Q1 = 0.4472135507786051, Median = 0.6416889290465444, Q3 = 0.7745966518130589, Mean = 0.5802, Std = 0.2518
+- torque_diff_abs_log: Logarithm of absolute torque difference to handle large imbalances while reducing skewness (numerical), range = [-13.815510557964274, 3.1780538720146114], Q1 = 0.6931476805598203, Median = 1.7917596358947077, Q3 = 2.397895363707457, Mean = 0.5221, Std = 4.2462
+- torque_sum_sqrt: Square root of torque sum to reduce the impact of very large combined torques (numerical), range = [1.7320508075688772, 7.071067811865476], Q1 = 3.3166247903554, Median = 4.123105625617661, Q3 = 4.898979485566356, Mean = 4.1326, Std = 1.0452
+- torque_ratio_sigmoid: Sigmoid transform of log torque ratio to bound extreme values between 0-1 (numerical), range = [0.0384624615375754, 0.9523809092970584], Q1 = 0.3333336666665555, Median = 0.5000002222221266, Q3 = 0.7142856938776005, Mean = 0.5036, Std = 0.2373
+
+Data Examples:
+L-Weight is 4.0. L-Distance is 1.0. R-Weight is 1.0. R-Distance is 4.0. left_torque is 4.0. right_torque is 4.0. torque_diff is 0.0. torque_ratio is 0.9999997500000624. torque_sum is 8.0. torque_abs_diff is 0.0. log_torque_ratio is 7.499997810274167e-07. torque_product is 16.0. log_torque_sum is 2.079441666679828. torque_imbalance_ratio is 0.0. torque_diff_squared is 0.0. torque_imbalance_ratio_sigmoid is 0.5. torque_product_log is 2.772588784739779. torque_diff_cubed is 0.0. torque_ratio_logistic is 0.5000001874999452. torque_imbalance_ratio_sqrt is 0.0. torque_diff_abs_log is -13.815510557964274. torque_sum_sqrt is 2.8284271247461903. torque_ratio_sigmoid is 0.5000001874999452.
+Answer: 0.0
+L-Weight is 3.0. L-Distance is 2.0. R-Weight is 1.0. R-Distance is 1.0. left_torque is 6.0. right_torque is 1.0. torque_diff is 5.0. torque_ratio is 5.999994000006001. torque_sum is 7.0. torque_abs_diff is 5.0. log_torque_ratio is 1.7917586358953743. torque_product is 6.0. log_torque_sum is 1.9459102919124456. torque_imbalance_ratio is 0.7142856122449125. torque_diff_squared is 25.0. torque_imbalance_ratio_sigmoid is 0.671347430968442. torque_product_log is 1.7917596358947077. torque_diff_cubed is 125.0. torque_ratio_logistic is 0.8571427551020903. torque_imbalance_ratio_sqrt is 0.845154194360362. torque_diff_abs_log is 1.6094381124340804. torque_sum_sqrt is 2.6457513110645907. torque_ratio_sigmoid is 0.8571427551020903.
+Answer: 1.0
+L-Weight is 3.0. L-Distance is 4.0. R-Weight is 5.0. R-Distance is 3.0. left_torque is 12.0. right_torque is 15.0. torque_diff is -3.0. torque_ratio is 0.7999999466666703. torque_sum is 27.0. torque_abs_diff is 3.0. log_torque_ratio is -0.223142367981572. torque_product is 180.0. log_torque_sum is 3.295836903041365. torque_imbalance_ratio is 0.1111111069958849. torque_diff_squared is 9.0. torque_imbalance_ratio_sigmoid is 0.5277492340288754. torque_product_log is 5.1929568564457655. torque_diff_cubed is -27.0. torque_ratio_logistic is 0.4444447366253619. torque_imbalance_ratio_sqrt is 0.3333333271604939. torque_diff_abs_log is 1.0986126220013874. torque_sum_sqrt is 5.196152422706632. torque_ratio_sigmoid is 0.4444447366253619.
+Answer: 2.0
+
+
+Operators:
+square, sqrt, cosine, sine, tangent, exp, cube, log, reciprocal, sigmoid, abs, negate, zscore, minmax, rank, bin, one_hot, label_encode, extract_time, is_weekend, elapsed_time, plus, subtract, multiply, divide, mod, equal, greater, less, max, min, cross, concat, ratio, diff, bin
+rolling_mean, lag, cumsum, groupbythenmean, groupbythenmin, groupbythenmax, groupbythenmedian, groupbythenstd, groupbythenrank, target_encoding
+
+2025-08-16 09:56:53,555 - INFO - HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2025-08-16 09:57:11,417 - INFO - Token Usage:{'prompt_tokens': 3075, 'completion_tokens': 374, 'total_tokens': 3449}
+2025-08-16 09:57:11,418 - INFO - LLM Output: Here are three potential feature engineering steps that could improve the downstream model's performance, along with their reasoning:
+
+1. <torque_diff_abs_sqrt><sqrt><torque_abs_diff><Square root of absolute torque difference to reduce skewness while preserving magnitude information>  
+Reasoning: The current torque_abs_diff has a high standard deviation (5.95) relative to its mean (7.26). Taking the square root will compress the scale while maintaining the relative differences, making the feature more normally distributed and potentially more useful for linear models.
+
+2. <torque_ratio_log><log><torque_ratio><Natural log of torque ratio to handle extreme values in multiplicative relationships>  
+Reasoning: While log_torque_ratio exists, it's calculated from raw torques. Calculating log directly from the ratio provides different information - it will be more sensitive to small ratio changes near 1 (where the balance decision occurs) while compressing extreme values. This could help with class boundary decisions.
+
+3. <torque_imbalance_interaction><multiply><torque_imbalance_ratio><torque_diff><Interaction term between imbalance ratio and difference to capture non-linear effects>  
+Reasoning: The interaction between these two related but distinct measures of imbalance may reveal patterns where their combined effect is more predictive than either alone. This could help capture cases where both the relative and absolute differences matter for the classification.
+
+These features were chosen because:
+1) They create complementary transformations of existing informative features
+2) They address specific potential weaknesses in the current feature set (skewness, extreme values)
+3) They create meaningful interactions between related physical quantities
+4) They maintain interpretability while potentially improving predictive power
+
+The operations avoid dividing by zero risks and focus on transformations that are mathematically meaningful for the torque-based physics of the problem.
+2025-08-16 09:57:11,431 - INFO - Success Operators:
+[{'new_feature_name': 'torque_diff_abs_sqrt', 'operator': 'sqrt', 'feature1': 'torque_abs_diff', 'feature2': None, 'description': 'Square root of absolute torque difference to reduce skewness while preserving magnitude information'}, {'new_feature_name': 'torque_ratio_log', 'operator': 'log', 'feature1': 'torque_ratio', 'feature2': None, 'description': 'Natural log of torque ratio to handle extreme values in multiplicative relationships'}, {'new_feature_name': 'torque_imbalance_interaction', 'operator': 'multiply', 'feature1': 'torque_imbalance_ratio', 'feature2': 'torque_diff', 'description': 'Interaction term between imbalance ratio and difference to capture non-linear effects'}]
+2025-08-16 09:57:11,434 - INFO - Extracted Metadata: {'L-Weight': 'Left-Weight: 5 (1, 2, 3, 4, 5)', 'L-Distance': 'Left-Distance: 5 (1, 2, 3, 4, 5)', 'R-Weight': 'Right-Weight: 5 (1, 2, 3, 4, 5)', 'R-Distance': 'Right-Distance: 5 (1, 2, 3, 4, 5)', 'torque_diff_abs_sqrt': 'Square root of absolute torque difference to reduce skewness while preserving magnitude information', 'torque_ratio_log': 'Natural log of torque ratio to handle extreme values in multiplicative relationships', 'torque_imbalance_interaction': 'Interaction term between imbalance ratio and difference to capture non-linear effects'}
+2025-08-16 09:58:25,304 - INFO - new_val_acc = 1.0
+2025-08-16 09:59:34,889 - INFO - sel_val_acc = 1.0
+2025-08-16 09:59:34,903 - INFO - Time used for iteration 7: 161.61 seconds
+2025-08-16 09:59:34,903 - INFO - Total token usage = 16378
+2025-08-16 09:59:34,903 - INFO - ========== Iteration 8/10 ==========
+2025-08-16 09:59:34,948 - INFO - Initial prompt: You are an expert datascientist working to improve predictions. 
+You perform feature engineering that generate additional columns that are useful for a downstream task.
+
+Task: This data set was generated to model psychological experimental results. Each example is classified as having the balance scale tip to the right, tip to the left, or be balanced. The attributes are the left weight, the left distance, the right weight, and the right distance. The correct way to find the class is the greater of (left-distance * left-weight) and (right-distance * right-weight). If they are equal, it is balanced.
+
+Features:
+- L-Weight: Left-Weight: 5 (1, 2, 3, 4, 5) (numerical), range = [1, 5], Q1 = 2.0, Median = 3.0, Q3 = 4.0, Mean = 2.9867, Std = 1.4357
+- L-Distance: Left-Distance: 5 (1, 2, 3, 4, 5) (numerical), range = [1, 5], Q1 = 2.0, Median = 3.0, Q3 = 4.0, Mean = 3.0773, Std = 1.4318
+- R-Weight: Right-Weight: 5 (1, 2, 3, 4, 5) (numerical), range = [1, 5], Q1 = 2.0, Median = 3.0, Q3 = 4.0, Mean = 3.0267, Std = 1.4196
+- R-Distance: Right-Distance: 5 (1, 2, 3, 4, 5) (numerical), range = [1, 5], Q1 = 2.0, Median = 3.0, Q3 = 4.0, Mean = 2.9787, Std = 1.4403
+- left_torque:  (numerical), range = [1, 25], Q1 = 4.0, Median = 8.0, Q3 = 15.0, Mean = 9.1493, Std = 6.4608
+- right_torque:  (numerical), range = [1, 25], Q1 = 4.0, Median = 8.0, Q3 = 12.0, Mean = 9.0187, Std = 6.3807
+- torque_diff:  (numerical), range = [-24, 23], Q1 = -6.0, Median = 0.0, Q3 = 6.0, Mean = 0.1307, Std = 9.3909
+- torque_ratio:  (numerical), range = [0.0399999984, 19.999980000020003], Q1 = 0.499999750000125, Median = 0.9999998888889012, Q3 = 2.499998750000625, Mean = 1.9678, Std = 2.6699
+- torque_sum:  (numerical), range = [3, 50], Q1 = 11.0, Median = 17.0, Q3 = 24.0, Mean = 18.1680, Std = 8.7592
+- torque_abs_diff:  (numerical), range = [0, 24], Q1 = 2.0, Median = 6.0, Q3 = 11.0, Mean = 7.2560, Std = 5.9511
+- log_torque_ratio:  (numerical), range = [-3.218850865179696, 2.99573132355454], Q1 = -0.6931456805608203, Median = 8.888885060900691e-07, Q3 = 0.9162906318744, Mean = 0.0165, Std = 1.1822
+- torque_product:  (numerical), range = [2, 625], Q1 = 24.0, Median = 50.0, Q3 = 100.0, Mean = 79.6560, Std = 88.0584
+- log_torque_sum:  (numerical), range = [1.0986126220013874, 3.912023025428146], Q1 = 2.397895363707457, Median = 2.8332134028797435, Q3 = 3.1780538720146114, Mean = 2.7684, Std = 0.5426
+- torque_imbalance_ratio:  (numerical), range = [0.0, 0.9230768875739658], Q1 = 0.199999960000008, Median = 0.4117646816609011, Q3 = 0.5999999730000012, Mean = 0.3999, Std = 0.2547
+- torque_diff_squared:  (numerical), range = [0, 576], Q1 = 4.0, Median = 36.0, Q3 = 121.0, Mean = 87.9707, Std = 121.0521
+- torque_imbalance_ratio_sigmoid:  (numerical), range = [0.5, 0.7156686277134006], Q1 = 0.549833987411817, Median = 0.601510940827612, Q3 = 0.6456563000486213, Mean = 0.5971, Std = 0.0605
+- torque_product_log:  (numerical), range = [0.6931476805598203, 6.437751651336401], Q1 = 3.1780538720146114, Median = 3.912023025428146, Q3 = 4.605170195988091, Mean = 3.8418, Std = 1.1093
+- torque_diff_cubed:  (numerical), range = [-13824, 12167], Q1 = -216.0, Median = 0.0, Q3 = 216.0, Mean = -15.8053, Std = 2799.2337
+- torque_ratio_logistic:  (numerical), range = [0.0384624615375754, 0.9523809092970584], Q1 = 0.3333336666665555, Median = 0.5000002222221266, Q3 = 0.7142856938776005, Mean = 0.5036, Std = 0.2373
+- torque_imbalance_ratio_sqrt:  (numerical), range = [0.0, 0.9607689043541978], Q1 = 0.4472135507786051, Median = 0.6416889290465444, Q3 = 0.7745966518130589, Mean = 0.5802, Std = 0.2518
+- torque_diff_abs_log:  (numerical), range = [-13.815510557964274, 3.1780538720146114], Q1 = 0.6931476805598203, Median = 1.7917596358947077, Q3 = 2.397895363707457, Mean = 0.5221, Std = 4.2462
+- torque_sum_sqrt:  (numerical), range = [1.7320508075688772, 7.071067811865476], Q1 = 3.3166247903554, Median = 4.123105625617661, Q3 = 4.898979485566356, Mean = 4.1326, Std = 1.0452
+- torque_ratio_sigmoid:  (numerical), range = [0.0384624615375754, 0.9523809092970584], Q1 = 0.3333336666665555, Median = 0.5000002222221266, Q3 = 0.7142856938776005, Mean = 0.5036, Std = 0.2373
+- torque_diff_abs_sqrt: Square root of absolute torque difference to reduce skewness while preserving magnitude information (numerical), range = [0.0, 4.898979485566356], Q1 = 1.4142135623730951, Median = 2.449489742783178, Q3 = 3.3166247903554, Mean = 2.3987, Std = 1.2272
+- torque_ratio_log: Natural log of torque ratio to handle extreme values in multiplicative relationships (numerical), range = [-3.218850865179696, 2.99573132355454], Q1 = -0.6931456805608203, Median = 8.888885060900691e-07, Q3 = 0.9162906318744, Mean = 0.0165, Std = 1.1822
+- torque_imbalance_interaction: Interaction term between imbalance ratio and difference to capture non-linear effects (numerical), range = [-22.153845301775178, 19.59259186694104], Q1 = -1.9999999375000013, Median = 0.0, Q3 = 2.499999937500001, Mean = 0.0498, Std = 6.2708
+
+Data Examples:
+L-Weight is 4.0. L-Distance is 1.0. R-Weight is 1.0. R-Distance is 4.0. left_torque is 4.0. right_torque is 4.0. torque_diff is 0.0. torque_ratio is 0.9999997500000624. torque_sum is 8.0. torque_abs_diff is 0.0. log_torque_ratio is 7.499997810274167e-07. torque_product is 16.0. log_torque_sum is 2.079441666679828. torque_imbalance_ratio is 0.0. torque_diff_squared is 0.0. torque_imbalance_ratio_sigmoid is 0.5. torque_product_log is 2.772588784739779. torque_diff_cubed is 0.0. torque_ratio_logistic is 0.5000001874999452. torque_imbalance_ratio_sqrt is 0.0. torque_diff_abs_log is -13.815510557964274. torque_sum_sqrt is 2.8284271247461903. torque_ratio_sigmoid is 0.5000001874999452. torque_diff_abs_sqrt is 0.0. torque_ratio_log is 7.499997810274167e-07. torque_imbalance_interaction is 0.0.
+Answer: 0.0
+L-Weight is 3.0. L-Distance is 2.0. R-Weight is 1.0. R-Distance is 1.0. left_torque is 6.0. right_torque is 1.0. torque_diff is 5.0. torque_ratio is 5.999994000006001. torque_sum is 7.0. torque_abs_diff is 5.0. log_torque_ratio is 1.7917586358953743. torque_product is 6.0. log_torque_sum is 1.9459102919124456. torque_imbalance_ratio is 0.7142856122449125. torque_diff_squared is 25.0. torque_imbalance_ratio_sigmoid is 0.671347430968442. torque_product_log is 1.7917596358947077. torque_diff_cubed is 125.0. torque_ratio_logistic is 0.8571427551020903. torque_imbalance_ratio_sqrt is 0.845154194360362. torque_diff_abs_log is 1.6094381124340804. torque_sum_sqrt is 2.6457513110645907. torque_ratio_sigmoid is 0.8571427551020903. torque_diff_abs_sqrt is 2.23606797749979. torque_ratio_log is 1.7917586358953743. torque_imbalance_interaction is 3.5714280612245624.
+Answer: 1.0
+L-Weight is 3.0. L-Distance is 4.0. R-Weight is 5.0. R-Distance is 3.0. left_torque is 12.0. right_torque is 15.0. torque_diff is -3.0. torque_ratio is 0.7999999466666703. torque_sum is 27.0. torque_abs_diff is 3.0. log_torque_ratio is -0.223142367981572. torque_product is 180.0. log_torque_sum is 3.295836903041365. torque_imbalance_ratio is 0.1111111069958849. torque_diff_squared is 9.0. torque_imbalance_ratio_sigmoid is 0.5277492340288754. torque_product_log is 5.1929568564457655. torque_diff_cubed is -27.0. torque_ratio_logistic is 0.4444447366253619. torque_imbalance_ratio_sqrt is 0.3333333271604939. torque_diff_abs_log is 1.0986126220013874. torque_sum_sqrt is 5.196152422706632. torque_ratio_sigmoid is 0.4444447366253619. torque_diff_abs_sqrt is 1.7320508075688772. torque_ratio_log is -0.223142367981572. torque_imbalance_interaction is -0.3333333209876547.
+Answer: 2.0
+
+
+Operators:
+square, sqrt, cosine, sine, tangent, exp, cube, log, reciprocal, sigmoid, abs, negate, zscore, minmax, rank, bin, one_hot, label_encode, extract_time, is_weekend, elapsed_time, plus, subtract, multiply, divide, mod, equal, greater, less, max, min, cross, concat, ratio, diff, bin
+rolling_mean, lag, cumsum, groupbythenmean, groupbythenmin, groupbythenmax, groupbythenmedian, groupbythenstd, groupbythenrank, target_encoding
+
+2025-08-16 09:59:35,188 - INFO - HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2025-08-16 09:59:52,682 - INFO - Token Usage:{'prompt_tokens': 3454, 'completion_tokens': 386, 'total_tokens': 3840}
+2025-08-16 09:59:52,682 - INFO - LLM Output: Here are three potential feature engineering steps that could improve the downstream model's performance, along with their reasoning:
+
+1. <torque_diff_abs_sqrt_cube><cube><torque_diff_abs_sqrt><Cube of sqrt(abs(torque_diff)) to amplify magnitude differences while preserving sign information>
+   - Reasoning: The current torque_diff_abs_sqrt captures magnitude but loses direction. Cubing it will maintain the directional information (via sign) while creating a steeper non-linear relationship that may help the model better distinguish between small and large imbalances.
+
+2. <torque_ratio_sigmoid_log><log><torque_ratio_sigmoid><Log transform of sigmoid torque ratio to handle extreme values in probability-like space>
+   - Reasoning: The sigmoid-transformed torque ratio is bounded between 0 and 1. Taking its log will stretch values near the boundaries (0 and 1) to -∞ and 0 respectively, which may help the model better handle cases where the torque ratio is extremely skewed in one direction.
+
+3. <torque_imbalance_interaction_sqrt><sqrt><abs(torque_imbalance_interaction)><Square root of absolute imbalance interaction to reduce skewness of interaction effects>
+   - Reasoning: The torque_imbalance_interaction has extreme values (range -22 to +19). Taking the square root of its absolute value (while preserving sign) will reduce the impact of extreme values while maintaining the interaction's directional information, potentially making the feature more robust.
+
+These features were chosen because:
+1) They build upon existing powerful features (torque_diff and torque_ratio variants)
+2) They address specific limitations in the current features (magnitude vs direction, bounded ranges, extreme values)
+3) They create non-linear transformations that may help linear models capture complex relationships
+4) They maintain interpretability while potentially improving predictive power
+2025-08-16 09:59:52,694 - INFO - 
+--- Summary of Errors ---
+2025-08-16 09:59:52,694 - INFO - - Warning: Failed to process feature 'torque_imbalance_interaction_sqrt'. Skipping. Error: 'abs(torque_imbalance_interaction)'
+2025-08-16 09:59:52,694 - INFO - Success Operators:
+[{'new_feature_name': 'torque_diff_abs_sqrt_cube', 'operator': 'cube', 'feature1': 'torque_diff_abs_sqrt', 'feature2': None, 'description': 'Cube of sqrt(abs(torque_diff)) to amplify magnitude differences while preserving sign information'}, {'new_feature_name': 'torque_ratio_sigmoid_log', 'operator': 'log', 'feature1': 'torque_ratio_sigmoid', 'feature2': None, 'description': 'Log transform of sigmoid torque ratio to handle extreme values in probability-like space'}]
+2025-08-16 09:59:52,695 - INFO - 
+--- Summary of Errors ---
+2025-08-16 09:59:52,695 - INFO - - Warning: Failed to process feature 'torque_imbalance_interaction_sqrt'. Skipping. Error: 'abs(torque_imbalance_interaction)'
+2025-08-16 09:59:52,697 - INFO - 
+--- Summary of Errors ---
+2025-08-16 09:59:52,697 - INFO - - Warning: Failed to process feature 'torque_imbalance_interaction_sqrt'. Skipping. Error: 'abs(torque_imbalance_interaction)'
+2025-08-16 09:59:52,697 - INFO - Extracted Metadata: {'L-Weight': 'Left-Weight: 5 (1, 2, 3, 4, 5)', 'L-Distance': 'Left-Distance: 5 (1, 2, 3, 4, 5)', 'R-Weight': 'Right-Weight: 5 (1, 2, 3, 4, 5)', 'R-Distance': 'Right-Distance: 5 (1, 2, 3, 4, 5)', 'torque_diff_abs_sqrt_cube': 'Cube of sqrt(abs(torque_diff)) to amplify magnitude differences while preserving sign information', 'torque_ratio_sigmoid_log': 'Log transform of sigmoid torque ratio to handle extreme values in probability-like space'}
+2025-08-16 10:01:08,978 - INFO - new_val_acc = 1.0
+2025-08-16 10:02:16,316 - INFO - sel_val_acc = 1.0
+2025-08-16 10:02:16,336 - INFO - Time used for iteration 8: 161.43 seconds
+2025-08-16 10:02:16,336 - INFO - Total token usage = 20218
+2025-08-16 10:02:16,336 - INFO - ========== Iteration 9/10 ==========
+2025-08-16 10:02:16,385 - INFO - Initial prompt: You are an expert datascientist working to improve predictions. 
+You perform feature engineering that generate additional columns that are useful for a downstream task.
+
+Task: This data set was generated to model psychological experimental results. Each example is classified as having the balance scale tip to the right, tip to the left, or be balanced. The attributes are the left weight, the left distance, the right weight, and the right distance. The correct way to find the class is the greater of (left-distance * left-weight) and (right-distance * right-weight). If they are equal, it is balanced.
+
+Features:
+- L-Weight: Left-Weight: 5 (1, 2, 3, 4, 5) (numerical), range = [1, 5], Q1 = 2.0, Median = 3.0, Q3 = 4.0, Mean = 2.9867, Std = 1.4357
+- L-Distance: Left-Distance: 5 (1, 2, 3, 4, 5) (numerical), range = [1, 5], Q1 = 2.0, Median = 3.0, Q3 = 4.0, Mean = 3.0773, Std = 1.4318
+- R-Weight: Right-Weight: 5 (1, 2, 3, 4, 5) (numerical), range = [1, 5], Q1 = 2.0, Median = 3.0, Q3 = 4.0, Mean = 3.0267, Std = 1.4196
+- R-Distance: Right-Distance: 5 (1, 2, 3, 4, 5) (numerical), range = [1, 5], Q1 = 2.0, Median = 3.0, Q3 = 4.0, Mean = 2.9787, Std = 1.4403
+- left_torque:  (numerical), range = [1, 25], Q1 = 4.0, Median = 8.0, Q3 = 15.0, Mean = 9.1493, Std = 6.4608
+- right_torque:  (numerical), range = [1, 25], Q1 = 4.0, Median = 8.0, Q3 = 12.0, Mean = 9.0187, Std = 6.3807
+- torque_diff:  (numerical), range = [-24, 23], Q1 = -6.0, Median = 0.0, Q3 = 6.0, Mean = 0.1307, Std = 9.3909
+- torque_ratio:  (numerical), range = [0.0399999984, 19.999980000020003], Q1 = 0.499999750000125, Median = 0.9999998888889012, Q3 = 2.499998750000625, Mean = 1.9678, Std = 2.6699
+- torque_sum:  (numerical), range = [3, 50], Q1 = 11.0, Median = 17.0, Q3 = 24.0, Mean = 18.1680, Std = 8.7592
+- torque_abs_diff:  (numerical), range = [0, 24], Q1 = 2.0, Median = 6.0, Q3 = 11.0, Mean = 7.2560, Std = 5.9511
+- log_torque_ratio:  (numerical), range = [-3.218850865179696, 2.99573132355454], Q1 = -0.6931456805608203, Median = 8.888885060900691e-07, Q3 = 0.9162906318744, Mean = 0.0165, Std = 1.1822
+- torque_product:  (numerical), range = [2, 625], Q1 = 24.0, Median = 50.0, Q3 = 100.0, Mean = 79.6560, Std = 88.0584
+- log_torque_sum:  (numerical), range = [1.0986126220013874, 3.912023025428146], Q1 = 2.397895363707457, Median = 2.8332134028797435, Q3 = 3.1780538720146114, Mean = 2.7684, Std = 0.5426
+- torque_imbalance_ratio:  (numerical), range = [0.0, 0.9230768875739658], Q1 = 0.199999960000008, Median = 0.4117646816609011, Q3 = 0.5999999730000012, Mean = 0.3999, Std = 0.2547
+- torque_diff_squared:  (numerical), range = [0, 576], Q1 = 4.0, Median = 36.0, Q3 = 121.0, Mean = 87.9707, Std = 121.0521
+- torque_imbalance_ratio_sigmoid:  (numerical), range = [0.5, 0.7156686277134006], Q1 = 0.549833987411817, Median = 0.601510940827612, Q3 = 0.6456563000486213, Mean = 0.5971, Std = 0.0605
+- torque_product_log:  (numerical), range = [0.6931476805598203, 6.437751651336401], Q1 = 3.1780538720146114, Median = 3.912023025428146, Q3 = 4.605170195988091, Mean = 3.8418, Std = 1.1093
+- torque_diff_cubed:  (numerical), range = [-13824, 12167], Q1 = -216.0, Median = 0.0, Q3 = 216.0, Mean = -15.8053, Std = 2799.2337
+- torque_ratio_logistic:  (numerical), range = [0.0384624615375754, 0.9523809092970584], Q1 = 0.3333336666665555, Median = 0.5000002222221266, Q3 = 0.7142856938776005, Mean = 0.5036, Std = 0.2373
+- torque_imbalance_ratio_sqrt:  (numerical), range = [0.0, 0.9607689043541978], Q1 = 0.4472135507786051, Median = 0.6416889290465444, Q3 = 0.7745966518130589, Mean = 0.5802, Std = 0.2518
+- torque_diff_abs_log:  (numerical), range = [-13.815510557964274, 3.1780538720146114], Q1 = 0.6931476805598203, Median = 1.7917596358947077, Q3 = 2.397895363707457, Mean = 0.5221, Std = 4.2462
+- torque_sum_sqrt:  (numerical), range = [1.7320508075688772, 7.071067811865476], Q1 = 3.3166247903554, Median = 4.123105625617661, Q3 = 4.898979485566356, Mean = 4.1326, Std = 1.0452
+- torque_ratio_sigmoid:  (numerical), range = [0.0384624615375754, 0.9523809092970584], Q1 = 0.3333336666665555, Median = 0.5000002222221266, Q3 = 0.7142856938776005, Mean = 0.5036, Std = 0.2373
+- torque_diff_abs_sqrt:  (numerical), range = [0.0, 4.898979485566356], Q1 = 1.4142135623730951, Median = 2.449489742783178, Q3 = 3.3166247903554, Mean = 2.3987, Std = 1.2272
+- torque_ratio_log:  (numerical), range = [-3.218850865179696, 2.99573132355454], Q1 = -0.6931456805608203, Median = 8.888885060900691e-07, Q3 = 0.9162906318744, Mean = 0.0165, Std = 1.1822
+- torque_imbalance_interaction:  (numerical), range = [-22.153845301775178, 19.59259186694104], Q1 = -1.9999999375000013, Median = 0.0, Q3 = 2.499999937500001, Mean = 0.0498, Std = 6.2708
+- torque_diff_abs_sqrt_cube: Cube of sqrt(abs(torque_diff)) to amplify magnitude differences while preserving sign information (numerical), range = [0.0, 117.57550765359252], Q1 = 2.8284271247461907, Median = 14.696938456699064, Q3 = 36.48287269390939, Mean = 24.3693, Std = 26.9953
+- torque_ratio_sigmoid_log: Log transform of sigmoid torque ratio to handle extreme values in probability-like space (numerical), range = [-3.258046539294478, -0.0487891594080253], Q1 = -1.0986082886764432, Median = -0.6931447361186797, Q3 = -0.3364708651935125, Mean = -0.8392, Std = 0.6176
+
+Data Examples:
+L-Weight is 4.0. L-Distance is 1.0. R-Weight is 1.0. R-Distance is 4.0. left_torque is 4.0. right_torque is 4.0. torque_diff is 0.0. torque_ratio is 0.9999997500000624. torque_sum is 8.0. torque_abs_diff is 0.0. log_torque_ratio is 7.499997810274167e-07. torque_product is 16.0. log_torque_sum is 2.079441666679828. torque_imbalance_ratio is 0.0. torque_diff_squared is 0.0. torque_imbalance_ratio_sigmoid is 0.5. torque_product_log is 2.772588784739779. torque_diff_cubed is 0.0. torque_ratio_logistic is 0.5000001874999452. torque_imbalance_ratio_sqrt is 0.0. torque_diff_abs_log is -13.815510557964274. torque_sum_sqrt is 2.8284271247461903. torque_ratio_sigmoid is 0.5000001874999452. torque_diff_abs_sqrt is 0.0. torque_ratio_log is 7.499997810274167e-07. torque_imbalance_interaction is 0.0. torque_diff_abs_sqrt_cube is 0.0. torque_ratio_sigmoid_log is -0.693144805562875.
+Answer: 0.0
+L-Weight is 3.0. L-Distance is 2.0. R-Weight is 1.0. R-Distance is 1.0. left_torque is 6.0. right_torque is 1.0. torque_diff is 5.0. torque_ratio is 5.999994000006001. torque_sum is 7.0. torque_abs_diff is 5.0. log_torque_ratio is 1.7917586358953743. torque_product is 6.0. log_torque_sum is 1.9459102919124456. torque_imbalance_ratio is 0.7142856122449125. torque_diff_squared is 25.0. torque_imbalance_ratio_sigmoid is 0.671347430968442. torque_product_log is 1.7917596358947077. torque_diff_cubed is 125.0. torque_ratio_logistic is 0.8571427551020903. torque_imbalance_ratio_sqrt is 0.845154194360362. torque_diff_abs_log is 1.6094381124340804. torque_sum_sqrt is 2.6457513110645907. torque_ratio_sigmoid is 0.8571427551020903. torque_diff_abs_sqrt is 2.23606797749979. torque_ratio_log is 1.7917586358953743. torque_imbalance_interaction is 3.5714280612245624. torque_diff_abs_sqrt_cube is 11.180339887498947. torque_ratio_sigmoid_log is -0.1541496322087017.
+Answer: 1.0
+L-Weight is 3.0. L-Distance is 4.0. R-Weight is 5.0. R-Distance is 3.0. left_torque is 12.0. right_torque is 15.0. torque_diff is -3.0. torque_ratio is 0.7999999466666703. torque_sum is 27.0. torque_abs_diff is 3.0. log_torque_ratio is -0.223142367981572. torque_product is 180.0. log_torque_sum is 3.295836903041365. torque_imbalance_ratio is 0.1111111069958849. torque_diff_squared is 9.0. torque_imbalance_ratio_sigmoid is 0.5277492340288754. torque_product_log is 5.1929568564457655. torque_diff_cubed is -27.0. torque_ratio_logistic is 0.4444447366253619. torque_imbalance_ratio_sqrt is 0.3333333271604939. torque_diff_abs_log is 1.0986126220013874. torque_sum_sqrt is 5.196152422706632. torque_ratio_sigmoid is 0.4444447366253619. torque_diff_abs_sqrt is 1.7320508075688772. torque_ratio_log is -0.223142367981572. torque_imbalance_interaction is -0.3333333209876547. torque_diff_abs_sqrt_cube is 5.196152422706631. torque_ratio_sigmoid_log is -0.8109273088134911.
+Answer: 2.0
+
+
+Operators:
+square, sqrt, cosine, sine, tangent, exp, cube, log, reciprocal, sigmoid, abs, negate, zscore, minmax, rank, bin, one_hot, label_encode, extract_time, is_weekend, elapsed_time, plus, subtract, multiply, divide, mod, equal, greater, less, max, min, cross, concat, ratio, diff, bin
+rolling_mean, lag, cumsum, groupbythenmean, groupbythenmin, groupbythenmax, groupbythenmedian, groupbythenstd, groupbythenrank, target_encoding
+
+2025-08-16 10:02:16,554 - INFO - HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2025-08-16 10:02:31,351 - INFO - Token Usage:{'prompt_tokens': 3724, 'completion_tokens': 314, 'total_tokens': 4038}
+2025-08-16 10:02:31,351 - INFO - LLM Output: Here are 3 potential feature engineering steps that could improve the downstream model's performance, with explanations:
+
+1. <torque_diff_signed_sqrt><sqrt><abs(torque_diff)><Signed square root of torque difference to emphasize smaller differences while preserving direction>  
+Reasoning: The current torque_diff has extreme values (-24 to 23). Taking signed square root would compress the scale while maintaining the direction information, which could help the model better handle the magnitude differences.
+
+2. <torque_ratio_interaction><multiply><torque_ratio><torque_imbalance_ratio><Interaction between ratio and imbalance metrics to capture non-linear relationships>  
+Reasoning: The interaction between these two ratio-based features may reveal patterns that aren't captured by either feature alone, particularly how the absolute ratio relates to the relative imbalance.
+
+3. <torque_quadratic_imbalance><multiply><torque_imbalance_ratio><torque_diff_squared><Combines imbalance proportion with squared difference for enhanced magnitude sensitivity>  
+Reasoning: This combines the proportional imbalance with the absolute squared difference, creating a feature that's sensitive to both the relative and absolute scales of imbalance, which could help distinguish borderline cases.
+
+These features were chosen because:
+1. They create non-linear transformations that may better separate the classes
+2. They combine existing features in ways that capture physical relationships in the torque system
+3. They maintain interpretability while potentially improving predictive power
+4. They avoid operations that could create numerical instability (like dividing by small numbers)
+2025-08-16 10:02:31,361 - INFO - 
+--- Summary of Errors ---
+2025-08-16 10:02:31,361 - INFO - - Warning: Failed to process feature 'torque_diff_signed_sqrt'. Skipping. Error: 'abs(torque_diff)'
+2025-08-16 10:02:31,362 - INFO - Success Operators:
+[{'new_feature_name': 'torque_ratio_interaction', 'operator': 'multiply', 'feature1': 'torque_ratio', 'feature2': 'torque_imbalance_ratio', 'description': 'Interaction between ratio and imbalance metrics to capture non-linear relationships'}, {'new_feature_name': 'torque_quadratic_imbalance', 'operator': 'multiply', 'feature1': 'torque_imbalance_ratio', 'feature2': 'torque_diff_squared', 'description': 'Combines imbalance proportion with squared difference for enhanced magnitude sensitivity'}]
+2025-08-16 10:02:31,363 - INFO - 
+--- Summary of Errors ---
+2025-08-16 10:02:31,363 - INFO - - Warning: Failed to process feature 'torque_diff_signed_sqrt'. Skipping. Error: 'abs(torque_diff)'
+2025-08-16 10:02:31,364 - INFO - 
+--- Summary of Errors ---
+2025-08-16 10:02:31,364 - INFO - - Warning: Failed to process feature 'torque_diff_signed_sqrt'. Skipping. Error: 'abs(torque_diff)'
+2025-08-16 10:02:31,364 - INFO - Extracted Metadata: {'L-Weight': 'Left-Weight: 5 (1, 2, 3, 4, 5)', 'L-Distance': 'Left-Distance: 5 (1, 2, 3, 4, 5)', 'R-Weight': 'Right-Weight: 5 (1, 2, 3, 4, 5)', 'R-Distance': 'Right-Distance: 5 (1, 2, 3, 4, 5)', 'torque_ratio_interaction': 'Interaction between ratio and imbalance metrics to capture non-linear relationships', 'torque_quadratic_imbalance': 'Combines imbalance proportion with squared difference for enhanced magnitude sensitivity'}
+2025-08-16 10:03:39,422 - INFO - new_val_acc = 1.0
+2025-08-16 10:04:53,847 - INFO - sel_val_acc = 1.0
+2025-08-16 10:04:53,866 - INFO - Time used for iteration 9: 157.53 seconds
+2025-08-16 10:04:53,866 - INFO - Total token usage = 24256
+2025-08-16 10:04:53,866 - INFO - ========== Iteration 10/10 ==========
+2025-08-16 10:04:53,914 - INFO - Initial prompt: You are an expert datascientist working to improve predictions. 
+You perform feature engineering that generate additional columns that are useful for a downstream task.
+
+Task: This data set was generated to model psychological experimental results. Each example is classified as having the balance scale tip to the right, tip to the left, or be balanced. The attributes are the left weight, the left distance, the right weight, and the right distance. The correct way to find the class is the greater of (left-distance * left-weight) and (right-distance * right-weight). If they are equal, it is balanced.
+
+Features:
+- L-Weight: Left-Weight: 5 (1, 2, 3, 4, 5) (numerical), range = [1, 5], Q1 = 2.0, Median = 3.0, Q3 = 4.0, Mean = 2.9867, Std = 1.4357
+- L-Distance: Left-Distance: 5 (1, 2, 3, 4, 5) (numerical), range = [1, 5], Q1 = 2.0, Median = 3.0, Q3 = 4.0, Mean = 3.0773, Std = 1.4318
+- R-Weight: Right-Weight: 5 (1, 2, 3, 4, 5) (numerical), range = [1, 5], Q1 = 2.0, Median = 3.0, Q3 = 4.0, Mean = 3.0267, Std = 1.4196
+- R-Distance: Right-Distance: 5 (1, 2, 3, 4, 5) (numerical), range = [1, 5], Q1 = 2.0, Median = 3.0, Q3 = 4.0, Mean = 2.9787, Std = 1.4403
+- left_torque:  (numerical), range = [1, 25], Q1 = 4.0, Median = 8.0, Q3 = 15.0, Mean = 9.1493, Std = 6.4608
+- right_torque:  (numerical), range = [1, 25], Q1 = 4.0, Median = 8.0, Q3 = 12.0, Mean = 9.0187, Std = 6.3807
+- torque_diff:  (numerical), range = [-24, 23], Q1 = -6.0, Median = 0.0, Q3 = 6.0, Mean = 0.1307, Std = 9.3909
+- torque_ratio:  (numerical), range = [0.0399999984, 19.999980000020003], Q1 = 0.499999750000125, Median = 0.9999998888889012, Q3 = 2.499998750000625, Mean = 1.9678, Std = 2.6699
+- torque_sum:  (numerical), range = [3, 50], Q1 = 11.0, Median = 17.0, Q3 = 24.0, Mean = 18.1680, Std = 8.7592
+- torque_abs_diff:  (numerical), range = [0, 24], Q1 = 2.0, Median = 6.0, Q3 = 11.0, Mean = 7.2560, Std = 5.9511
+- log_torque_ratio:  (numerical), range = [-3.218850865179696, 2.99573132355454], Q1 = -0.6931456805608203, Median = 8.888885060900691e-07, Q3 = 0.9162906318744, Mean = 0.0165, Std = 1.1822
+- torque_product:  (numerical), range = [2, 625], Q1 = 24.0, Median = 50.0, Q3 = 100.0, Mean = 79.6560, Std = 88.0584
+- log_torque_sum:  (numerical), range = [1.0986126220013874, 3.912023025428146], Q1 = 2.397895363707457, Median = 2.8332134028797435, Q3 = 3.1780538720146114, Mean = 2.7684, Std = 0.5426
+- torque_imbalance_ratio:  (numerical), range = [0.0, 0.9230768875739658], Q1 = 0.199999960000008, Median = 0.4117646816609011, Q3 = 0.5999999730000012, Mean = 0.3999, Std = 0.2547
+- torque_diff_squared:  (numerical), range = [0, 576], Q1 = 4.0, Median = 36.0, Q3 = 121.0, Mean = 87.9707, Std = 121.0521
+- torque_imbalance_ratio_sigmoid:  (numerical), range = [0.5, 0.7156686277134006], Q1 = 0.549833987411817, Median = 0.601510940827612, Q3 = 0.6456563000486213, Mean = 0.5971, Std = 0.0605
+- torque_product_log:  (numerical), range = [0.6931476805598203, 6.437751651336401], Q1 = 3.1780538720146114, Median = 3.912023025428146, Q3 = 4.605170195988091, Mean = 3.8418, Std = 1.1093
+- torque_diff_cubed:  (numerical), range = [-13824, 12167], Q1 = -216.0, Median = 0.0, Q3 = 216.0, Mean = -15.8053, Std = 2799.2337
+- torque_ratio_logistic:  (numerical), range = [0.0384624615375754, 0.9523809092970584], Q1 = 0.3333336666665555, Median = 0.5000002222221266, Q3 = 0.7142856938776005, Mean = 0.5036, Std = 0.2373
+- torque_imbalance_ratio_sqrt:  (numerical), range = [0.0, 0.9607689043541978], Q1 = 0.4472135507786051, Median = 0.6416889290465444, Q3 = 0.7745966518130589, Mean = 0.5802, Std = 0.2518
+- torque_diff_abs_log:  (numerical), range = [-13.815510557964274, 3.1780538720146114], Q1 = 0.6931476805598203, Median = 1.7917596358947077, Q3 = 2.397895363707457, Mean = 0.5221, Std = 4.2462
+- torque_sum_sqrt:  (numerical), range = [1.7320508075688772, 7.071067811865476], Q1 = 3.3166247903554, Median = 4.123105625617661, Q3 = 4.898979485566356, Mean = 4.1326, Std = 1.0452
+- torque_ratio_sigmoid:  (numerical), range = [0.0384624615375754, 0.9523809092970584], Q1 = 0.3333336666665555, Median = 0.5000002222221266, Q3 = 0.7142856938776005, Mean = 0.5036, Std = 0.2373
+- torque_diff_abs_sqrt:  (numerical), range = [0.0, 4.898979485566356], Q1 = 1.4142135623730951, Median = 2.449489742783178, Q3 = 3.3166247903554, Mean = 2.3987, Std = 1.2272
+- torque_ratio_log:  (numerical), range = [-3.218850865179696, 2.99573132355454], Q1 = -0.6931456805608203, Median = 8.888885060900691e-07, Q3 = 0.9162906318744, Mean = 0.0165, Std = 1.1822
+- torque_imbalance_interaction:  (numerical), range = [-22.153845301775178, 19.59259186694104], Q1 = -1.9999999375000013, Median = 0.0, Q3 = 2.499999937500001, Mean = 0.0498, Std = 6.2708
+- torque_diff_abs_sqrt_cube:  (numerical), range = [0.0, 117.57550765359252], Q1 = 2.8284271247461907, Median = 14.696938456699064, Q3 = 36.48287269390939, Mean = 24.3693, Std = 26.9953
+- torque_ratio_sigmoid_log:  (numerical), range = [-3.258046539294478, -0.0487891594080253], Q1 = -1.0986082886764432, Median = -0.6931447361186797, Q3 = -0.3364708651935125, Mean = -0.8392, Std = 0.6176
+- torque_ratio_interaction: Interaction between ratio and imbalance metrics to capture non-linear relationships (numerical), range = [0.0, 18.095219138340997], Q1 = 0.1158620603357911, Median = 0.1666666319444499, Q3 = 1.0714278826534274, Mean = 1.0816, Std = 2.2822
+- torque_quadratic_imbalance: Combines imbalance proportion with squared difference for enhanced magnitude sensitivity (numerical), range = [0.0, 531.6922872426043], Q1 = 0.9999998750000156, Median = 14.913042829867702, Q3 = 68.1626745699507, Mean = 56.7397, Std = 92.9533
+
+Data Examples:
+L-Weight is 4.0. L-Distance is 1.0. R-Weight is 1.0. R-Distance is 4.0. left_torque is 4.0. right_torque is 4.0. torque_diff is 0.0. torque_ratio is 0.9999997500000624. torque_sum is 8.0. torque_abs_diff is 0.0. log_torque_ratio is 7.499997810274167e-07. torque_product is 16.0. log_torque_sum is 2.079441666679828. torque_imbalance_ratio is 0.0. torque_diff_squared is 0.0. torque_imbalance_ratio_sigmoid is 0.5. torque_product_log is 2.772588784739779. torque_diff_cubed is 0.0. torque_ratio_logistic is 0.5000001874999452. torque_imbalance_ratio_sqrt is 0.0. torque_diff_abs_log is -13.815510557964274. torque_sum_sqrt is 2.8284271247461903. torque_ratio_sigmoid is 0.5000001874999452. torque_diff_abs_sqrt is 0.0. torque_ratio_log is 7.499997810274167e-07. torque_imbalance_interaction is 0.0. torque_diff_abs_sqrt_cube is 0.0. torque_ratio_sigmoid_log is -0.693144805562875. torque_ratio_interaction is 0.0. torque_quadratic_imbalance is 0.0.
+Answer: 0.0
+L-Weight is 3.0. L-Distance is 2.0. R-Weight is 1.0. R-Distance is 1.0. left_torque is 6.0. right_torque is 1.0. torque_diff is 5.0. torque_ratio is 5.999994000006001. torque_sum is 7.0. torque_abs_diff is 5.0. log_torque_ratio is 1.7917586358953743. torque_product is 6.0. log_torque_sum is 1.9459102919124456. torque_imbalance_ratio is 0.7142856122449125. torque_diff_squared is 25.0. torque_imbalance_ratio_sigmoid is 0.671347430968442. torque_product_log is 1.7917596358947077. torque_diff_cubed is 125.0. torque_ratio_logistic is 0.8571427551020903. torque_imbalance_ratio_sqrt is 0.845154194360362. torque_diff_abs_log is 1.6094381124340804. torque_sum_sqrt is 2.6457513110645907. torque_ratio_sigmoid is 0.8571427551020903. torque_diff_abs_sqrt is 2.23606797749979. torque_ratio_log is 1.7917586358953743. torque_imbalance_interaction is 3.5714280612245624. torque_diff_abs_sqrt_cube is 11.180339887498947. torque_ratio_sigmoid_log is -0.1541496322087017. torque_ratio_interaction is 4.285709387760088. torque_quadratic_imbalance is 17.857140306122812.
+Answer: 1.0
+L-Weight is 3.0. L-Distance is 4.0. R-Weight is 5.0. R-Distance is 3.0. left_torque is 12.0. right_torque is 15.0. torque_diff is -3.0. torque_ratio is 0.7999999466666703. torque_sum is 27.0. torque_abs_diff is 3.0. log_torque_ratio is -0.223142367981572. torque_product is 180.0. log_torque_sum is 3.295836903041365. torque_imbalance_ratio is 0.1111111069958849. torque_diff_squared is 9.0. torque_imbalance_ratio_sigmoid is 0.5277492340288754. torque_product_log is 5.1929568564457655. torque_diff_cubed is -27.0. torque_ratio_logistic is 0.4444447366253619. torque_imbalance_ratio_sqrt is 0.3333333271604939. torque_diff_abs_log is 1.0986126220013874. torque_sum_sqrt is 5.196152422706632. torque_ratio_sigmoid is 0.4444447366253619. torque_diff_abs_sqrt is 1.7320508075688772. torque_ratio_log is -0.223142367981572. torque_imbalance_interaction is -0.3333333209876547. torque_diff_abs_sqrt_cube is 5.196152422706631. torque_ratio_sigmoid_log is -0.8109273088134911. torque_ratio_interaction is 0.0888888796707826. torque_quadratic_imbalance is 0.999999962962964.
+Answer: 2.0
+
+
+Operators:
+square, sqrt, cosine, sine, tangent, exp, cube, log, reciprocal, sigmoid, abs, negate, zscore, minmax, rank, bin, one_hot, label_encode, extract_time, is_weekend, elapsed_time, plus, subtract, multiply, divide, mod, equal, greater, less, max, min, cross, concat, ratio, diff, bin
+rolling_mean, lag, cumsum, groupbythenmean, groupbythenmin, groupbythenmax, groupbythenmedian, groupbythenstd, groupbythenrank, target_encoding
+
+2025-08-16 10:04:54,103 - INFO - HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2025-08-16 10:05:11,327 - INFO - Token Usage:{'prompt_tokens': 3967, 'completion_tokens': 361, 'total_tokens': 4328}
+2025-08-16 10:05:11,327 - INFO - LLM Output: Here are three potential feature engineering steps that could improve the downstream model's performance, with explanations for each:
+
+1. <torque_diff_abs_log_sigmoid><sigmoid><torque_diff_abs_log><Applies sigmoid to log of absolute torque difference to normalize extreme values>
+   - Reasoning: The torque_diff_abs_log feature has extreme negative values (-13.8) that could distort linear models. Applying sigmoid will bound these values between 0-1 while preserving the relative ordering, making the feature more robust.
+
+2. <torque_quadratic_imbalance_sqrt><sqrt><torque_quadratic_imbalance><Square root transformation of quadratic imbalance to reduce skew>
+   - Reasoning: The torque_quadratic_imbalance has a large range (0-531) and is likely right-skewed. Square root transformation will compress the upper range while maintaining the magnitude relationships, which often helps with linear models and distance-based algorithms.
+
+3. <torque_ratio_interaction_abs><abs><torque_ratio_interaction><Absolute value of ratio interaction to capture magnitude of non-linearity regardless of direction>
+   - Reasoning: The interaction feature currently contains both positive and negative values (-22 to 19). Taking absolute values will focus on the strength of the interaction rather than its direction, which may be more relevant for the balance prediction task.
+
+These transformations were chosen because:
+1) They address specific issues in existing features (extreme values, skewness, sign sensitivity)
+2) They maintain interpretable relationships with the underlying physics (torque calculations)
+3) They create features with different value distributions that may help different types of models
+4) They avoid creating redundant features with existing transformations
+2025-08-16 10:05:11,341 - INFO - Success Operators:
+[{'new_feature_name': 'torque_diff_abs_log_sigmoid', 'operator': 'sigmoid', 'feature1': 'torque_diff_abs_log', 'feature2': None, 'description': 'Applies sigmoid to log of absolute torque difference to normalize extreme values'}, {'new_feature_name': 'torque_quadratic_imbalance_sqrt', 'operator': 'sqrt', 'feature1': 'torque_quadratic_imbalance', 'feature2': None, 'description': 'Square root transformation of quadratic imbalance to reduce skew'}, {'new_feature_name': 'torque_ratio_interaction_abs', 'operator': 'abs', 'feature1': 'torque_ratio_interaction', 'feature2': None, 'description': 'Absolute value of ratio interaction to capture magnitude of non-linearity regardless of direction'}]
+2025-08-16 10:05:11,346 - INFO - Extracted Metadata: {'L-Weight': 'Left-Weight: 5 (1, 2, 3, 4, 5)', 'L-Distance': 'Left-Distance: 5 (1, 2, 3, 4, 5)', 'R-Weight': 'Right-Weight: 5 (1, 2, 3, 4, 5)', 'R-Distance': 'Right-Distance: 5 (1, 2, 3, 4, 5)', 'torque_diff_abs_log_sigmoid': 'Applies sigmoid to log of absolute torque difference to normalize extreme values', 'torque_quadratic_imbalance_sqrt': 'Square root transformation of quadratic imbalance to reduce skew', 'torque_ratio_interaction_abs': 'Absolute value of ratio interaction to capture magnitude of non-linearity regardless of direction'}
+2025-08-16 10:06:17,507 - INFO - new_val_acc = 1.0
+2025-08-16 10:07:28,756 - INFO - sel_val_acc = 1.0
+2025-08-16 10:07:28,774 - INFO - Time used for iteration 10: 154.91 seconds
+2025-08-16 10:07:28,774 - INFO - Total token usage = 28584
+2025-08-16 10:08:39,323 - INFO - final_test_acc = 1.0
+2025-08-16 10:08:39,323 - INFO - Total token usage = 28584
+2025-08-16 10:08:39,323 - INFO - Score list = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+2025-08-16 10:08:39,323 - INFO - Best performance = 1.0
+2025-08-16 10:08:39,324 - INFO - Best feature set = {'L-Weight': 'Left-Weight: 5 (1, 2, 3, 4, 5)', 'L-Distance': 'Left-Distance: 5 (1, 2, 3, 4, 5)', 'R-Weight': 'Right-Weight: 5 (1, 2, 3, 4, 5)', 'R-Distance': 'Right-Distance: 5 (1, 2, 3, 4, 5)', 'left_torque': 'Calculates the torque on the left side (weight * distance), which is directly relevant to the target', 'right_torque': 'Calculates the torque on the right side (weight * distance), mirroring the left_torque feature', 'torque_diff': 'Difference between left and right torques (left - right), indicating imbalance direction', 'torque_ratio': 'Ratio of left to right torque, capturing relative dominance'}
+2025-08-16 10:08:39,324 - INFO - Total time used = 1604.70 seconds
+2025-08-16 10:08:39,324 - INFO - ========== END ==========
+final_test_acc_ag = 1.0
+========== END ==========

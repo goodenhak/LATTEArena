@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LATTEArena — An Evaluation Framework for LLM-powered Tabular Feature Engineering</title>
+<meta name="description" content="LATTEArena: a standardized, modular, execution-safe benchmarking framework for LLM-powered Automated Tabular Feature Engineering (LATTE). 15 methods · 6-dim taxonomy · 24 configurations · 7 research questions · 17 findings.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,400..700&family=Hanken+Grotesk:wght@300..800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   LATTEArena — companion site
+   Aesthetic: "Computational blue" — academic blue & white, navy depth
+   ============================================================ */
+:root{
+  --cream:        #EEF3FA;   /* soft blue-grey section bg */
+  --cream-2:      #E1EAF6;   /* deeper blue-grey */
+  --cream-3:      #C8D7EC;   /* decorative / borders */
+  --foam:         #FFFFFF;   /* pure white cards (matches figure bg) */
+  --espresso:     #0F1C36;   /* deep navy (dark sections / text) */
+  --espresso-2:   #0A1428;   /* darker navy */
+  --coffee:       #2C4F8E;   /* medium blue (secondary headings/text) */
+  --caramel:      #2563EB;   /* primary accent — academic blue */
+  --caramel-br:   #5B8DEF;   /* bright blue (on dark) */
+  --terracotta:   #DC4C3F;   /* warning/challenge red accent */
+  --jade:         #0E8C8B;   /* teal secondary accent */
+  --jade-br:      #2BB1AD;   /* bright teal */
+  --ink:          #15223B;   /* near-black navy text */
+  --muted:        #586A86;   /* slate body text */
+  --line:         #D6E0EE;   /* hairline */
+  --line-dk:      rgba(255,255,255,.13);
+  --maxw: 1180px;
+  --serif: "Fraunces", Georgia, serif;
+  --sans: "Hanken Grotesk", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{
+  font-family:var(--sans);
+  background:var(--cream);
+  color:var(--ink);
+  line-height:1.6;
+  font-weight:400;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+/* grain overlay */
+body::before{
+  content:"";position:fixed;inset:0;z-index:9999;pointer-events:none;
+  opacity:.05;mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+::selection{background:var(--caramel);color:var(--foam)}
+a{color:inherit;text-decoration:none}
+img{max-width:100%;display:block}
+
+/* ---------- Layout helpers ---------- */
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 28px}
+.section{padding:108px 0;position:relative}
+.eyebrow{
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.32em;text-transform:uppercase;
+  color:var(--caramel);font-weight:500;display:inline-flex;align-items:center;gap:.7em;margin-bottom:1.4rem;
+}
+.eyebrow::before{content:"";width:34px;height:1px;background:var(--caramel)}
+h2.title{
+  font-family:var(--serif);font-weight:500;font-size:clamp(2rem,4.6vw,3.4rem);
+  line-height:1.04;letter-spacing:-.02em;color:var(--espresso);max-width:18ch;
+}
+h2.title em{font-style:italic;color:var(--coffee)}
+.lead{font-size:1.12rem;color:var(--muted);max-width:64ch;margin-top:1.6rem;font-weight:380}
+
+/* ---------- Nav ---------- */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:1000;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 28px;
+  background:rgba(228,237,250,.78);backdrop-filter:blur(14px) saturate(1.4);
+  border-bottom:1px solid transparent;transition:.35s;
+}
+nav.scrolled{border-bottom-color:var(--line);box-shadow:0 8px 30px -22px rgba(10,20,40,.5)}
+.brand{font-family:var(--serif);font-weight:600;font-size:1.18rem;letter-spacing:-.01em;color:var(--espresso);display:flex;align-items:center;gap:.5em}
+.brand .cup{font-size:1.1em;transform:translateY(1px)}
+.brand b{color:var(--caramel);font-weight:600}
+.navlinks{display:flex;gap:30px;align-items:center}
+.navlinks a{font-size:.82rem;font-weight:500;color:var(--coffee);letter-spacing:.01em;transition:.2s;position:relative}
+.navlinks a:hover{color:var(--espresso)}
+.navlinks a::after{content:"";position:absolute;left:0;bottom:-5px;height:1.5px;width:0;background:var(--caramel);transition:.25s}
+.navlinks a:hover::after{width:100%}
+.nav-cta{padding:8px 16px;border:1.5px solid var(--espresso);border-radius:40px;color:var(--espresso)!important;transition:.25s}
+.nav-cta:hover{background:var(--espresso);color:var(--foam)!important}
+.nav-cta::after{display:none}
+.burger{display:none;flex-direction:column;gap:5px;cursor:pointer;background:none;border:0}
+.burger span{width:24px;height:2px;background:var(--espresso);transition:.3s}
+
+/* ============================================================ HERO */
+.hero{
+  position:relative;min-height:100vh;display:flex;align-items:center;
+  background:radial-gradient(120% 120% at 80% -10%, #16315c 0%, var(--espresso) 40%, var(--espresso-2) 100%);
+  color:var(--cream);overflow:hidden;padding-top:80px;
+}
+.hero-mesh{position:absolute;inset:0;opacity:.55;pointer-events:none}
+.hero-mesh span{position:absolute;border-radius:50%;filter:blur(70px)}
+.m1{width:520px;height:520px;background:radial-gradient(circle,rgba(37,99,235,.55),transparent 70%);top:-120px;right:-60px}
+.m2{width:460px;height:460px;background:radial-gradient(circle,rgba(14,140,139,.40),transparent 70%);bottom:-140px;left:-80px}
+.m3{width:300px;height:300px;background:radial-gradient(circle,rgba(91,141,239,.34),transparent 70%);top:40%;left:42%}
+/* steam */
+.steam{position:absolute;top:0;left:50%;transform:translateX(-50%);width:300px;height:100%;pointer-events:none;opacity:.13}
+.steam i{position:absolute;bottom:0;width:2px;border-radius:2px;background:linear-gradient(to top,transparent,var(--caramel-br),transparent);animation:rise linear infinite}
+@keyframes rise{0%{transform:translateY(40px) scaleY(.4);opacity:0}20%{opacity:.8}100%{transform:translateY(-100vh) scaleY(1.2);opacity:0}}
+
+.hero-inner{position:relative;z-index:3;width:100%;max-width:var(--maxw);margin:0 auto;padding:0 28px}
+.hero-tag{
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.3em;text-transform:uppercase;
+  color:var(--caramel-br);display:inline-flex;gap:.8em;align-items:center;margin-bottom:1.7rem;
+  border:1px solid rgba(91,141,239,.4);padding:7px 16px;border-radius:40px;
+}
+.hero-tag .dot{width:6px;height:6px;border-radius:50%;background:var(--jade-br);box-shadow:0 0 10px var(--jade-br);animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.4}}
+.hero h1{
+  font-family:var(--serif);font-weight:300;font-size:clamp(3.1rem,9vw,7.4rem);line-height:.92;
+  letter-spacing:-.035em;margin-bottom:.1em;
+}
+.hero h1 .arena{font-style:italic;font-weight:500;
+  background:linear-gradient(100deg,var(--caramel-br),#A9CBFF 50%,var(--caramel-br));
+  -webkit-background-clip:text;background-clip:text;color:transparent;}
+.hero-sub{font-family:var(--serif);font-weight:300;font-size:clamp(1.15rem,2.6vw,1.7rem);
+  font-style:italic;color:var(--cream-3);max-width:30ch;line-height:1.3;margin-top:.4em}
+.hero-desc{max-width:54ch;margin-top:1.8rem;color:rgba(228,237,250,.78);font-size:1.04rem}
+.authors{display:flex;flex-wrap:wrap;gap:4px 26px;margin-top:2.3rem;font-size:.92rem;color:var(--cream-3)}
+.authors b{font-weight:600;color:var(--cream)}
+.affil{font-family:var(--mono);font-size:.74rem;letter-spacing:.12em;color:var(--caramel-br);margin-top:.5rem;text-transform:uppercase}
+.hero-btns{display:flex;flex-wrap:wrap;gap:14px;margin-top:2.6rem}
+.btn{
+  display:inline-flex;align-items:center;gap:.6em;padding:13px 24px;border-radius:46px;
+  font-weight:600;font-size:.9rem;transition:.28s cubic-bezier(.2,.8,.2,1);border:1.5px solid transparent;
+}
+.btn svg{width:16px;height:16px}
+.btn-primary{background:var(--caramel-br);color:var(--espresso-2)}
+.btn-primary:hover{background:#7EA8F5;transform:translateY(-3px);box-shadow:0 16px 30px -14px rgba(91,141,239,.7)}
+.btn-ghost{border-color:rgba(228,237,250,.35);color:var(--cream)}
+.btn-ghost:hover{border-color:var(--cream);background:rgba(228,237,250,.07);transform:translateY(-3px)}
+.scroll-cue{position:absolute;bottom:30px;left:50%;transform:translateX(-50%);z-index:3;
+  font-family:var(--mono);font-size:.66rem;letter-spacing:.28em;text-transform:uppercase;color:rgba(228,237,250,.5);
+  display:flex;flex-direction:column;align-items:center;gap:8px}
+.scroll-cue .ln{width:1px;height:36px;background:linear-gradient(var(--caramel-br),transparent);animation:cue 1.8s ease-in-out infinite}
+@keyframes cue{0%,100%{opacity:.3;transform:scaleY(.6)}50%{opacity:1;transform:scaleY(1)}}
+
+/* ---------- Stat strip ---------- */
+.stats{background:var(--espresso-2);color:var(--cream);border-top:1px solid var(--line-dk)}
+.stats-grid{display:grid;grid-template-columns:repeat(6,1fr);max-width:var(--maxw);margin:0 auto}
+.stat{padding:34px 18px;text-align:center;border-right:1px solid var(--line-dk)}
+.stat:last-child{border-right:0}
+.stat .num{font-family:var(--serif);font-weight:400;font-size:clamp(1.9rem,3.4vw,2.9rem);color:var(--caramel-br);line-height:1;letter-spacing:-.02em}
+.stat .lbl{font-family:var(--mono);font-size:.66rem;letter-spacing:.16em;text-transform:uppercase;color:rgba(228,237,250,.6);margin-top:.7rem}
+
+/* ---------- Abstract ---------- */
+.abstract-sec{background:var(--foam)}
+.abstract-body{font-family:var(--serif);font-weight:300;font-size:clamp(1.25rem,2.5vw,1.7rem);
+  line-height:1.5;color:var(--espresso);letter-spacing:-.01em;max-width:24ch}
+.abstract-grid{display:grid;grid-template-columns:.85fr 1.15fr;gap:64px;align-items:start}
+.abstract-text p{font-size:1.06rem;color:var(--ink);margin-bottom:1.2rem}
+.abstract-text p strong{color:var(--coffee);font-weight:700}
+.kw{display:inline-block;font-family:var(--mono);font-size:.78rem;background:var(--cream-2);
+  border:1px solid var(--line);padding:5px 12px;border-radius:6px;margin:4px 6px 0 0;color:var(--coffee)}
+
+/* ---------- generic figure plate ---------- */
+.plate{background:var(--foam);border:1px solid var(--line);border-radius:14px;padding:20px;
+  box-shadow:0 30px 60px -40px rgba(10,20,40,.4);position:relative}
+.plate::before{content:"";position:absolute;top:12px;left:12px;right:12px;bottom:12px;border:1px solid var(--line);border-radius:8px;pointer-events:none;opacity:.5}
+.plate img{border-radius:6px}
+.fig-cap{font-family:var(--mono);font-size:.74rem;color:var(--muted);margin-top:14px;letter-spacing:.03em;line-height:1.5}
+.fig-cap b{color:var(--caramel);font-weight:600}
+
+/* ---------- Challenge cards ---------- */
+.challenge-sec{background:var(--cream)}
+.chal-grid{display:grid;grid-template-columns:1fr 1fr;gap:26px;margin-top:50px}
+.chal{background:var(--foam);border:1px solid var(--line);border-radius:16px;padding:36px;position:relative;overflow:hidden;transition:.35s}
+.chal:hover{transform:translateY(-5px);box-shadow:0 30px 50px -34px rgba(91,141,239,.5)}
+.chal-num{font-family:var(--serif);font-style:italic;font-size:5rem;line-height:.7;color:var(--cream-3);position:absolute;top:18px;right:22px;font-weight:400}
+.chal .badge{font-family:var(--mono);font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:var(--terracotta);font-weight:600}
+.chal h3{font-family:var(--serif);font-weight:500;font-size:1.5rem;margin:.7rem 0 .8rem;color:var(--espresso);max-width:16ch;line-height:1.12}
+.chal p{color:var(--muted);font-size:.98rem}
+.chal-bar{height:3px;width:46px;background:var(--terracotta);margin-bottom:1.4rem;border-radius:3px}
+
+/* ---------- Pipeline ---------- */
+.pipe-sec{background:var(--espresso);color:var(--cream)}
+.pipe-sec .title{color:var(--foam)}
+.pipe-sec .title em{color:var(--caramel-br)}
+.pipe-sec .lead{color:rgba(228,237,250,.7)}
+.pipe-sec .eyebrow{color:var(--caramel-br)}
+.pipe-sec .eyebrow::before{background:var(--caramel-br)}
+.stages{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:54px}
+.stage{background:rgba(228,237,250,.04);border:1px solid var(--line-dk);border-radius:16px;padding:30px;transition:.35s}
+.stage:hover{background:rgba(37,99,235,.09);border-color:rgba(91,141,239,.4)}
+.stage .s-no{font-family:var(--mono);font-size:.74rem;letter-spacing:.2em;color:var(--caramel-br)}
+.stage h3{font-family:var(--serif);font-weight:500;font-size:1.4rem;margin:.5rem 0 .9rem;color:var(--foam)}
+.stage p{color:rgba(228,237,250,.68);font-size:.94rem}
+.stage .tags{margin-top:1.1rem;display:flex;flex-wrap:wrap;gap:7px}
+.stage .tags span{font-family:var(--mono);font-size:.68rem;padding:4px 10px;border:1px solid var(--line-dk);border-radius:20px;color:var(--cream-3)}
+.pipe-fig{margin-top:54px}
+.pipe-sec .plate{background:#ffffff}
+
+/* ---------- Taxonomy ---------- */
+.tax-sec{background:var(--cream)}
+.dim-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:50px}
+.dim{background:var(--foam);border:1px solid var(--line);border-radius:16px;padding:28px;transition:.35s;cursor:default;position:relative;overflow:hidden}
+.dim::after{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--accent,var(--caramel));transform:scaleY(0);transform-origin:top;transition:.35s}
+.dim:hover{transform:translateY(-5px);box-shadow:0 28px 46px -34px rgba(10,20,40,.45)}
+.dim:hover::after{transform:scaleY(1)}
+.dim .d-head{display:flex;align-items:center;gap:14px;margin-bottom:1rem}
+.dim .d-circ{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-family:var(--serif);font-weight:600;font-size:1.2rem;
+  background:var(--accent,var(--caramel));color:var(--foam);flex-shrink:0}
+.dim h3{font-family:var(--serif);font-weight:500;font-size:1.28rem;color:var(--espresso);line-height:1.05}
+.dim .d-role{font-family:var(--mono);font-size:.64rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);display:block;margin-top:3px}
+.dim ul{list-style:none;margin-top:.4rem}
+.dim li{font-size:.9rem;color:var(--ink);padding:7px 0;border-top:1px dashed var(--line);display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.dim li:first-child{border-top:0}
+.dim li b{font-weight:600;color:var(--coffee)}
+.dim li .meta{font-family:var(--mono);font-size:.66rem;color:var(--accent,var(--caramel));white-space:nowrap}
+.tk{background:var(--cream-2);border-left:3px solid var(--caramel);padding:16px 20px;border-radius:0 10px 10px 0;margin-top:18px;font-size:.9rem;color:var(--ink)}
+.tk b{color:var(--coffee)}
+
+/* ---------- Methods table ---------- */
+.methods-sec{background:var(--foam)}
+.tbl-wrap{margin-top:46px;overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--cream)}
+table{border-collapse:collapse;width:100%;min-width:880px;font-size:.84rem}
+thead th{background:var(--espresso);color:var(--cream-3);font-family:var(--mono);font-size:.68rem;letter-spacing:.08em;
+  text-transform:uppercase;font-weight:500;padding:14px 12px;text-align:left;position:sticky;top:0}
+tbody td{padding:11px 12px;border-top:1px solid var(--line);vertical-align:middle}
+tbody tr:hover{background:var(--cream-2)}
+/* highlighted header cells must keep a dark, readable treatment */
+thead th.hl-col{background:#1b3360;color:var(--caramel-br)}
+.m-name{font-family:var(--mono);font-weight:700;color:var(--coffee)}
+.m-venue{font-size:.74rem;color:var(--muted);font-family:var(--mono)}
+.fam-tag{font-family:var(--mono);font-size:.66rem;font-weight:700;padding:3px 9px;border-radius:20px;letter-spacing:.06em}
+.fam-CoT{background:#E4ECF9;color:#2456B5}
+.fam-ToT{background:#D8EFEE;color:#0E7C7B}
+.fam-OPRO{background:#E7E9FB;color:#4A41C7}
+.fam-Evo{background:#DEEFF7;color:#1E6E97}
+.fam-Critic{background:#EEE7FA;color:#6B47C0}
+.hl-col{background:rgba(37,99,235,.08)}
+.pivotal{font-weight:700;color:var(--espresso)}
+.legend-row{display:flex;flex-wrap:wrap;gap:18px;margin-top:18px;font-size:.78rem;color:var(--muted);font-family:var(--mono)}
+.legend-row span{display:inline-flex;align-items:center;gap:7px}
+.legend-row .sw{width:14px;height:14px;border-radius:4px;background:rgba(37,99,235,.25);border:1px solid var(--caramel)}
+
+/* ---------- Framework / arena ---------- */
+.fw-sec{background:var(--cream)}
+.mod-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:46px}
+.mod{background:var(--foam);border:1px solid var(--line);border-radius:14px;padding:22px;transition:.3s;position:relative}
+.mod:hover{transform:translateY(-4px);border-color:var(--caramel);box-shadow:0 24px 40px -32px rgba(10,20,40,.5)}
+.mod .mi{width:34px;height:34px;border-radius:9px;background:var(--cream-2);display:grid;place-items:center;color:var(--coffee);margin-bottom:12px}
+.mod .mi svg{width:18px;height:18px}
+.mod h4{font-family:var(--serif);font-weight:500;font-size:1.08rem;color:var(--espresso);margin-bottom:.4rem}
+.mod p{font-size:.82rem;color:var(--muted);line-height:1.5}
+.mod .badge-opt{position:absolute;top:14px;right:14px;font-family:var(--mono);font-size:.56rem;letter-spacing:.1em;
+  color:var(--jade);border:1px dashed var(--jade);padding:2px 7px;border-radius:20px}
+.adv-row{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:32px}
+.adv{padding:24px;border-left:3px solid var(--caramel);background:var(--foam);border-radius:0 12px 12px 0}
+.adv h4{font-family:var(--serif);font-size:1.1rem;color:var(--espresso);margin-bottom:.4rem;font-weight:500}
+.adv p{font-size:.88rem;color:var(--muted)}
+
+/* ---------- Config space ---------- */
+.cfg-sec{background:var(--foam)}
+.alias-demo{background:var(--espresso);color:var(--cream);border-radius:16px;padding:34px 30px;margin-top:42px;
+  display:flex;flex-wrap:wrap;align-items:center;gap:14px 26px}
+.alias-demo .big{font-family:var(--mono);font-weight:700;font-size:2.6rem;letter-spacing:.05em;color:var(--caramel-br)}
+.alias-leg{display:flex;gap:22px;flex-wrap:wrap}
+.alias-leg div{font-size:.86rem}
+.alias-leg .k{font-family:var(--mono);font-weight:700;color:var(--caramel-br);font-size:1.05rem}
+.alias-leg .v{color:rgba(228,237,250,.7);font-size:.78rem;font-family:var(--mono);letter-spacing:.05em}
+.principles{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:38px}
+.prin{background:var(--cream);border:1px solid var(--line);border-radius:14px;padding:24px}
+.prin .pn{font-family:var(--mono);font-weight:700;color:var(--caramel);font-size:.78rem;letter-spacing:.1em}
+.prin h4{font-family:var(--serif);font-weight:500;font-size:1.12rem;color:var(--espresso);margin:.5rem 0;line-height:1.1}
+.prin p{font-size:.86rem;color:var(--muted)}
+
+/* ---------- Findings ---------- */
+.find-sec{background:var(--espresso);color:var(--cream)}
+.find-sec .title{color:var(--foam)}
+.find-sec .title em{color:var(--caramel-br)}
+.find-sec .eyebrow{color:var(--caramel-br)}.find-sec .eyebrow::before{background:var(--caramel-br)}
+.find-sec .lead{color:rgba(228,237,250,.7)}
+.rq-block{margin-top:64px}
+.rq-head{display:flex;align-items:baseline;gap:16px;margin-bottom:24px;border-bottom:1px solid var(--line-dk);padding-bottom:14px}
+.rq-head .rq-id{font-family:var(--mono);font-size:.72rem;letter-spacing:.18em;color:var(--jade-br);font-weight:700;
+  border:1px solid rgba(43,177,173,.4);padding:5px 12px;border-radius:20px;flex-shrink:0}
+.rq-head h3{font-family:var(--serif);font-weight:400;font-size:1.55rem;color:var(--foam)}
+.find-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.finding{background:rgba(228,237,250,.045);border:1px solid var(--line-dk);border-radius:14px;padding:26px;transition:.35s;position:relative}
+.finding:hover{background:rgba(37,99,235,.1);border-color:rgba(91,141,239,.4);transform:translateY(-4px)}
+.finding .f-no{font-family:var(--serif);font-style:italic;font-size:1rem;color:var(--caramel-br);font-weight:600;display:block;margin-bottom:.5rem}
+.finding p{font-size:.96rem;color:rgba(228,237,250,.86);line-height:1.5}
+.finding p b{color:var(--foam);font-weight:600}
+.find-fig{margin-top:42px}
+.find-sec .plate{background:#ffffff}
+.find-sec .fig-cap{color:rgba(228,237,250,.6)}
+.find-sec .fig-cap b{color:var(--caramel-br)}
+.fig2col{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:42px;align-items:start}
+
+/* ---------- Recommendations ---------- */
+.rec-sec{background:var(--cream)}
+.rec-list{margin-top:48px;display:grid;gap:0}
+.rec{display:grid;grid-template-columns:auto 1fr;gap:28px;align-items:start;padding:30px 0;border-top:1px solid var(--line)}
+.rec:last-child{border-bottom:1px solid var(--line)}
+.rec .rno{font-family:var(--serif);font-style:italic;font-weight:400;font-size:2.6rem;color:var(--caramel);line-height:.8;width:56px}
+.rec .rbody h4{font-family:var(--serif);font-weight:500;font-size:1.28rem;color:var(--espresso);margin-bottom:.4rem;line-height:1.1}
+.rec .rbody p{color:var(--muted);font-size:.98rem;max-width:70ch}
+.rec code{font-family:var(--mono);font-size:.82rem;background:var(--cream-2);padding:2px 7px;border-radius:5px;color:var(--coffee);border:1px solid var(--line)}
+.rec:hover .rno{color:var(--jade)}
+
+/* ---------- Future / bottlenecks ---------- */
+.btl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:42px}
+.btl{background:var(--foam);border:1px dashed var(--line);border-radius:14px;padding:24px}
+.btl .bi{font-family:var(--serif);font-style:italic;color:var(--coffee);font-size:1.3rem}
+.btl p{font-size:.9rem;color:var(--muted);margin-top:.5rem}
+
+/* ---------- Citation ---------- */
+.cite-sec{background:var(--espresso-2);color:var(--cream)}
+.cite-sec .eyebrow{color:var(--caramel-br)}.cite-sec .eyebrow::before{background:var(--caramel-br)}
+.cite-sec .title{color:var(--foam)}
+.bib{background:#081020;border:1px solid var(--line-dk);border-radius:14px;padding:26px;margin-top:32px;position:relative;overflow:auto}
+.bib pre{font-family:var(--mono);font-size:.82rem;color:#AFC7EC;line-height:1.7;white-space:pre}
+.bib .copy{position:absolute;top:16px;right:16px;font-family:var(--mono);font-size:.7rem;letter-spacing:.1em;
+  background:var(--caramel-br);color:var(--espresso-2);border:0;padding:7px 14px;border-radius:8px;cursor:pointer;font-weight:700;transition:.2s}
+.bib .copy:hover{background:#7EA8F5}
+
+/* ---------- Footer ---------- */
+footer{background:var(--espresso-2);color:rgba(228,237,250,.55);padding:50px 0 60px;border-top:1px solid var(--line-dk)}
+.foot-inner{display:flex;flex-wrap:wrap;justify-content:space-between;gap:24px;align-items:center}
+.foot-brand{font-family:var(--serif);font-size:1.5rem;color:var(--cream)}
+.foot-brand b{color:var(--caramel-br)}
+.foot-links{display:flex;gap:24px;font-size:.84rem;font-family:var(--mono);letter-spacing:.04em}
+.foot-links a:hover{color:var(--caramel-br)}
+.foot-note{width:100%;font-size:.76rem;font-family:var(--mono);letter-spacing:.04em;margin-top:18px;color:rgba(228,237,250,.5)}
+
+/* ---------- Reveal animation ---------- */
+.reveal{opacity:0;transform:translateY(28px);transition:.85s cubic-bezier(.16,.8,.3,1)}
+.reveal.in{opacity:1;transform:none}
+.reveal.d1{transition-delay:.08s}.reveal.d2{transition-delay:.16s}.reveal.d3{transition-delay:.24s}
+.reveal.d4{transition-delay:.32s}.reveal.d5{transition-delay:.4s}
+
+/* ---------- Responsive ---------- */
+@media(max-width:980px){
+  .abstract-grid{grid-template-columns:1fr;gap:34px}
+  .stages,.dim-grid,.mod-grid,.principles,.btl-grid,.adv-row{grid-template-columns:1fr 1fr}
+  .stats-grid{grid-template-columns:repeat(3,1fr)}
+  .stat:nth-child(3){border-right:0}
+  .fig2col,.find-grid{grid-template-columns:1fr}
+}
+@media(max-width:680px){
+  .section{padding:74px 0}
+  .navlinks{display:none}
+  .burger{display:flex}
+  .chal-grid,.dim-grid,.mod-grid,.principles,.btl-grid,.adv-row,.stages,.stats-grid{grid-template-columns:1fr}
+  .stat{border-right:0;border-bottom:1px solid var(--line-dk)}
+  .alias-demo .big{font-size:1.8rem}
+  .rec{grid-template-columns:1fr;gap:8px}
+  .rec .rno{font-size:2rem}
+}
+.mobile-menu{display:none;position:fixed;inset:0;z-index:999;background:var(--espresso);flex-direction:column;
+  align-items:center;justify-content:center;gap:28px;padding:40px}
+.mobile-menu.open{display:flex}
+.mobile-menu a{font-family:var(--serif);font-size:1.6rem;color:var(--cream)}
+.mobile-menu a:hover{color:var(--caramel-br)}
+.mclose{position:absolute;top:24px;right:28px;font-size:2rem;color:var(--cream);background:none;border:0;cursor:pointer}
+</style>
+</head>
+<body>
+
+<!-- ============ NAV ============ -->
+<nav id="nav">
+  <a href="#top" class="brand"><span class="cup">☕</span>LATTE<b>Arena</b></a>
+  <div class="navlinks">
+    <a href="#challenge">Challenges</a>
+    <a href="#pipeline">Pipeline</a>
+    <a href="#taxonomy">Taxonomy</a>
+    <a href="#framework">Framework</a>
+    <a href="#findings">Findings</a>
+    <a href="#recommendations">Recommend</a>
+    <a href="#cite" class="nav-cta">Cite</a>
+  </div>
+  <button class="burger" id="burger"><span></span><span></span><span></span></button>
+</nav>
+<div class="mobile-menu" id="mobileMenu">
+  <button class="mclose" id="mclose">×</button>
+  <a href="#challenge">Challenges</a>
+  <a href="#pipeline">Pipeline</a>
+  <a href="#taxonomy">Taxonomy</a>
+  <a href="#framework">Framework</a>
+  <a href="#findings">Findings</a>
+  <a href="#recommendations">Recommendations</a>
+  <a href="#cite">Cite</a>
+</div>
+
+<!-- ============ HERO ============ -->
+<header class="hero" id="top">
+  <div class="hero-mesh"><span class="m1"></span><span class="m2"></span><span class="m3"></span></div>
+  <div class="steam" id="steam"></div>
+  <div class="hero-inner">
+    <span class="hero-tag"><span class="dot"></span>Experiment · Analysis · Benchmark</span>
+    <h1>LATTE<span class="arena">Arena</span></h1>
+    <p class="hero-sub">An Evaluation Framework for LLM-powered Tabular Feature Engineering</p>
+    <p class="hero-desc">The first standardized, modular, and execution-safe benchmarking platform that deconstructs monolithic <b style="color:var(--caramel-br)">LATTE</b> pipelines into reusable execution blocks — shifting the field from ad-hoc prompt tuning to systematic context engineering.</p>
+    <div class="authors">
+      <span><b>Ankai Hao</b></span><span><b>Ke Chen</b></span><span><b>Huan Li</b></span><span><b>Lidan Shou</b></span>
+    </div>
+    <div class="affil">Zhejiang University · Hangzhou, China</div>
+    <div class="hero-btns">
+      <a href="https://arxiv.org/abs/2606.09004" target="_blank" rel="noopener" class="btn btn-primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>Read the Paper</a>
+      <a href="https://github.com/goodenhak/LATTEArena" target="_blank" rel="noopener" class="btn btn-ghost"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/></svg>Code</a>
+      <a href="https://drive.google.com/file/d/1s4C19r3EdntOYEBE47Yu20M31Gd_pB-J/view?usp=drive_link" target="_blank" rel="noopener" class="btn btn-ghost"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/></svg>Datasets</a>
+      <a href="https://github.com/goodenhak/LATTEArena/tree/main/execution_logs" target="_blank" rel="noopener" class="btn btn-ghost"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v4H4zM4 10h16v10H4z"/><path d="M8 14h8"/></svg>4,000+ Logs</a>
+    </div>
+  </div>
+  <div class="scroll-cue">Scroll<div class="ln"></div></div>
+</header>
+
+<!-- ============ STATS ============ -->
+<section class="stats">
+  <div class="stats-grid">
+    <div class="stat reveal"><div class="num" data-count="15">15</div><div class="lbl">Methods Surveyed</div></div>
+    <div class="stat reveal d1"><div class="num" data-count="6">6</div><div class="lbl">Taxonomy Dimensions</div></div>
+    <div class="stat reveal d2"><div class="num" data-count="24">24</div><div class="lbl">Core Configurations</div></div>
+    <div class="stat reveal d3"><div class="num" data-count="7">7</div><div class="lbl">Research Questions</div></div>
+    <div class="stat reveal d4"><div class="num" data-count="17">17</div><div class="lbl">Empirical Findings</div></div>
+    <div class="stat reveal d5"><div class="num" data-count="96">96</div><div class="lbl">Unique Pipelines</div></div>
+  </div>
+</section>
+
+<!-- ============ ABSTRACT ============ -->
+<section class="section abstract-sec" id="abstract">
+  <div class="wrap abstract-grid">
+    <div class="reveal">
+      <span class="eyebrow">Abstract</span>
+      <p class="abstract-body">Distilling a combinatorial design space into systematic, cost-aware insight.</p>
+    </div>
+    <div class="abstract-text reveal d1">
+      <p>Feature engineering remains a cornerstone of tabular data analysis, and LLMs have emerged as a promising paradigm for its automation — giving rise to <strong>LLM-powered Automated Tabular Feature Engineering (LATTE)</strong>. Yet the field lacks standardized, cost-aware evaluation, and a combinatorial explosion of design choices obscures true algorithmic progress.</p>
+      <p>We systematically deconstruct <strong>15 representative LATTE methods</strong> into a unified <strong>6-dimensional taxonomy</strong>, then introduce <strong>LATTEArena</strong>: a standardized, modular, extensible framework that decouples monolithic pipelines into reusable execution blocks. We evaluate <strong>24 core configurations</strong> across <strong>7 research questions</strong>, going beyond accuracy to quantify token efficiency and execution robustness.</p>
+      <p>The result: <strong>17 empirical findings</strong> on cost-effectiveness trade-offs and <strong>3 concrete recommendations</strong> for deployment. All code, datasets, and 4,000+ execution logs are public.</p>
+      <div style="margin-top:1.4rem">
+        <span class="kw">LLM for feature engineering</span><span class="kw">benchmarking</span><span class="kw">context engineering</span><span class="kw">tabular data</span><span class="kw">AutoML</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CHALLENGES ============ -->
+<section class="section challenge-sec" id="challenge">
+  <div class="wrap">
+    <div class="reveal">
+      <span class="eyebrow">Why a benchmark?</span>
+      <h2 class="title">Two bottlenecks hold the field <em>back</em></h2>
+      <p class="lead">Despite rapid emergence, LATTE significantly lags behind other LLM-driven tabular tasks. The community confronts two critical, intertwined obstacles.</p>
+    </div>
+    <div class="chal-grid">
+      <div class="chal reveal d1">
+        <span class="chal-num">01</span>
+        <div class="chal-bar"></div>
+        <span class="badge">Challenge 1</span>
+        <h3>Combinatorial explosion obscures attribution</h3>
+        <p>Existing methods are proposed as monolithic pipelines, arbitrarily bundling prompting paradigms, search strategies, and output formats. This entanglement makes it impossible to isolate which components actually drive gains versus which merely add overhead.</p>
+      </div>
+      <div class="chal reveal d2">
+        <span class="chal-num">02</span>
+        <div class="chal-bar"></div>
+        <span class="badge">Challenge 2</span>
+        <h3>Absence of standardized, cost-aware evaluation</h3>
+        <p>Current literature relies on fragmented setups and exclusively reports predictive accuracy. Crucial deployment metrics — token consumption, latency, and stability — are systematically neglected, leaving true cost-effectiveness obscured.</p>
+      </div>
+    </div>
+    <div class="plate reveal d2" style="margin-top:34px">
+      <img src="assets/fig1.png" alt="LATTEArena taxonomy and challenges">
+      <p class="fig-cap"><b>Fig 1.</b> The LATTEArena taxonomy and challenges — Method B may beat Method A, but what actually drives the gain? And how do we compare cost fairly across inconsistent LLMs and downstream models?</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PIPELINE ============ -->
+<section class="section pipe-sec" id="pipeline">
+  <div class="wrap">
+    <div class="reveal">
+      <span class="eyebrow">The LATTE pipeline</span>
+      <h2 class="title">An LLM iteratively proposes feature <em>transformations</em></h2>
+      <p class="lead">Guided by validation feedback, the optimizer progressively improves downstream performance through three main stages — the conceptual backbone every LATTE method shares.</p>
+    </div>
+    <div class="stages">
+      <div class="stage reveal d1">
+        <div class="s-no">S1</div>
+        <h3>Prompt Construction</h3>
+        <p>High-quality prompts guide the LLM toward effective feature generation, composed of six key components.</p>
+        <div class="tags"><span>Role</span><span>Task</span><span>Metadata</span><span>Instances</span><span>Demonstrations</span><span>Instructions</span></div>
+      </div>
+      <div class="stage reveal d2">
+        <div class="s-no">S2</div>
+        <h3>LLM-powered FE</h3>
+        <p>The optimizer 𝒫<sub>ℳ</sub> determines candidate transformations through iterative querying under a search strategy.</p>
+        <div class="tags"><span>Greedy</span><span>Evolutionary</span><span>UCB / MCTS</span><span>CoT · SC · RAG</span></div>
+      </div>
+      <div class="stage reveal d3">
+        <div class="s-no">S3</div>
+        <h3>Post-processing</h3>
+        <p>A parser translates textual output ϕ into executable programs, applies transforms, and logs (𝒞, ϕ) pairs for future rounds.</p>
+        <div class="tags"><span>NL</span><span>Rule</span><span>Code</span><span>RPN</span></div>
+      </div>
+    </div>
+    <div class="plate pipe-fig reveal d2">
+      <img src="assets/fig2.png" alt="The LATTE pipeline and six-dimensional taxonomy">
+      <p class="fig-cap"><b>Fig 2.</b> The LATTE pipeline and its six-dimensional taxonomy. Letters Ⓐ–Ⓕ mark where each design dimension enters the three-stage flow.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TAXONOMY ============ -->
+<section class="section tax-sec" id="taxonomy">
+  <div class="wrap">
+    <div class="reveal">
+      <span class="eyebrow">The 6-dimensional taxonomy</span>
+      <h2 class="title">Every method is a point in an <em>orthogonal</em> design space</h2>
+      <p class="lead">Despite apparent diversity, LATTE methods share a compact set of orthogonal axes. <b style="color:var(--coffee)">Prompting</b> and <b style="color:var(--coffee)">FE Strategy</b> primarily dictate behavior; the rest modulate cost and robustness.</p>
+    </div>
+    <div class="dim-grid">
+      <!-- A -->
+      <div class="dim reveal d1" style="--accent:#2563EB">
+        <div class="d-head"><div class="d-circ">A</div><div><h3>Prompting</h3><span class="d-role">Search policy over feature space</span></div></div>
+        <ul>
+          <li><b>Chain of Thought</b><span class="meta">baseline</span></li>
+          <li><b>Tree of Thought</b><span class="meta">branching</span></li>
+          <li><b>EvoPrompt</b><span class="meta">population</span></li>
+          <li><b>OPRO</b><span class="meta">feedback</span></li>
+          <li><b>Generator-Critic</b><span class="meta">closed-loop</span></li>
+        </ul>
+      </div>
+      <!-- B -->
+      <div class="dim reveal d2" style="--accent:#0E8C8B">
+        <div class="d-head"><div class="d-circ">B</div><div><h3>FE Strategy</h3><span class="d-role">Exploration / exploitation</span></div></div>
+        <ul>
+          <li><b>Expand-Reduce</b><span class="meta">decoupled</span></li>
+          <li><b>Greedy Incremental</b><span class="meta">7/15</span></li>
+          <li><b>MCTS Exploration</b><span class="meta">UCB</span></li>
+          <li><b>Best-of-N</b><span class="meta">select top</span></li>
+          <li><b>Select-Expand-Ensemble</b><span class="meta">data-space</span></li>
+        </ul>
+      </div>
+      <!-- C -->
+      <div class="dim reveal d3" style="--accent:#7C5CCF">
+        <div class="d-head"><div class="d-circ">C</div><div><h3>Demonstration</h3><span class="d-role">Inter-iteration memory</span></div></div>
+        <ul>
+          <li><b>Ranked / Top-k</b><span class="meta">by score</span></li>
+          <li><b>Positive-Negative</b><span class="meta">contrast</span></li>
+          <li><b>Full Context</b><span class="meta">scales poorly</span></li>
+          <li><b>Textual Gradient</b><span class="meta">distilled</span></li>
+        </ul>
+      </div>
+      <!-- D -->
+      <div class="dim reveal d1" style="--accent:#0891B2">
+        <div class="d-head"><div class="d-circ">D</div><div><h3>Output Format</h3><span class="d-role">Reachable space & failure mode</span></div></div>
+        <ul>
+          <li><b>Natural Language</b><span class="meta">expressive</span></li>
+          <li><b>Rule</b><span class="meta">discrete</span></li>
+          <li><b>Code</b><span class="meta">executable</span></li>
+          <li><b>RPN</b><span class="meta">compact</span></li>
+        </ul>
+      </div>
+      <!-- E -->
+      <div class="dim reveal d2" style="--accent:#4F46E5">
+        <div class="d-head"><div class="d-circ">E</div><div><h3>Metadata</h3><span class="d-role">Channel for domain knowledge</span></div></div>
+        <ul>
+          <li><b>Native</b><span class="meta">8/15</span></li>
+          <li><b>Human-Written</b><span class="meta">hi-fidelity</span></li>
+          <li><b>LLM-Generated</b><span class="meta">augment</span></li>
+          <li><b>Calculated Value</b><span class="meta">PyMFE</span></li>
+          <li><b>RAG-Enhanced</b><span class="meta">retrieval</span></li>
+        </ul>
+      </div>
+      <!-- F -->
+      <div class="dim reveal d3" style="--accent:#0E7AB8">
+        <div class="d-head"><div class="d-circ">F</div><div><h3>Data Sampling</h3><span class="d-role">Context compression</span></div></div>
+        <ul>
+          <li><b>Random-Selected</b><span class="meta">uniform</span></li>
+          <li><b>Cluster-based</b><span class="meta">by label</span></li>
+          <li><b>Human-Selected</b><span class="meta">expert</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="tk reveal d1">
+      <b>Takeaway —</b> The prompting families form a spectrum from single-trajectory refinement (CoT) through branching exploration (ToT), population search (EvoPrompt) and feedback optimization (OPRO) to closed-loop collaboration (Generator-Critic). Moving along it increases exploration and feedback quality — but with diminishing returns against escalating query cost.
+    </div>
+    <div class="plate reveal d2" style="margin-top:30px;max-width:760px;margin-left:auto;margin-right:auto">
+      <img src="assets/fig3.png" alt="LATTE feature engineering strategies">
+      <p class="fig-cap"><b>Fig 3.</b> The five FE strategies: (a) Expand-Reduce · (b) Greedy Incremental · (c) MCTS-based Exploration · (d) Best-of-N · (e) Select-Expand-Ensemble.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ METHODS TABLE ============ -->
+<section class="section methods-sec" id="methods">
+  <div class="wrap">
+    <div class="reveal">
+      <span class="eyebrow">15 representative methods</span>
+      <h2 class="title">Every published LATTE method, <em>decomposed</em></h2>
+      <p class="lead">Compiled since CAAFE (2023) to span the current technique space, grouped by core prompting paradigm. Highlighted columns are the performance-driving dimensions.</p>
+    </div>
+    <div class="tbl-wrap reveal d1">
+      <table>
+        <thead>
+          <tr>
+            <th>Family</th><th>Method</th><th>Venue</th>
+            <th class="hl-col">Ⓐ Prompting</th><th class="hl-col">Ⓒ Demonstration</th>
+            <th>Ⓔ Metadata</th><th>Ⓕ Sampling</th>
+            <th class="hl-col">Ⓑ FE Strategy</th><th class="hl-col">Ⓓ Output</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td rowspan="7"><span class="fam-tag fam-CoT">CoT</span></td><td class="m-name">CAAFE</td><td class="m-venue">NeurIPS'24</td><td class="hl-col pivotal">Vanilla CoT</td><td class="hl-col">Full Context</td><td>Human-Written</td><td>Random</td><td class="hl-col pivotal">Greedy Incremental</td><td class="hl-col pivotal">Code</td></tr>
+          <tr><td class="m-name">FEBias</td><td class="m-venue">NeurIPSW'24</td><td class="hl-col">Vanilla CoT</td><td class="hl-col">Full Context</td><td>Calculated</td><td>Random</td><td class="hl-col">Greedy Incremental</td><td class="hl-col pivotal">NL</td></tr>
+          <tr><td class="m-name">GPT-Signal</td><td class="m-venue">FINNLP'24</td><td class="hl-col">Vanilla CoT</td><td class="hl-col">/</td><td>LLM-Generated</td><td>Human</td><td class="hl-col">Greedy Incremental</td><td class="hl-col">NL</td></tr>
+          <tr><td class="m-name">RAFG</td><td class="m-venue">ICDM'25</td><td class="hl-col">Vanilla CoT</td><td class="hl-col">/</td><td>RAG-Enhanced</td><td>/</td><td class="hl-col">Greedy Incremental</td><td class="hl-col">Code</td></tr>
+          <tr><td class="m-name">SMARTFEAT</td><td class="m-venue">CIDR'24</td><td class="hl-col">Operator-based CoT</td><td class="hl-col">/</td><td>Native</td><td>/</td><td class="hl-col">Greedy Incremental</td><td class="hl-col">NL</td></tr>
+          <tr><td class="m-name">FeatLLM</td><td class="m-venue">ICML'24</td><td class="hl-col">CoT + SC</td><td class="hl-col">/</td><td>Native</td><td class="pivotal">Cluster-based</td><td class="hl-col">Select-Expand-Ensemble</td><td class="hl-col">Rule</td></tr>
+          <tr><td class="m-name">FREEFORM</td><td class="m-venue">AMIA'25</td><td class="hl-col">CoT + SC</td><td class="hl-col">Human-Written NL</td><td>/</td><td>Random</td><td class="hl-col">Select-Expand-Ensemble</td><td class="hl-col">NL</td></tr>
+
+          <tr><td rowspan="2"><span class="fam-tag fam-ToT">ToT</span></td><td class="m-name">LFG</td><td class="m-venue">IJCAI'25</td><td class="hl-col pivotal">ToT</td><td class="hl-col pivotal">Positive-Negative</td><td>Native</td><td>/</td><td class="hl-col pivotal">MCTS Exploration</td><td class="hl-col">NL</td></tr>
+          <tr><td class="m-name">Adda</td><td class="m-venue">SIGMOD'25</td><td class="hl-col">ToT</td><td class="hl-col">Top-k Code Snippets</td><td>Calculated</td><td>Random</td><td class="hl-col">MCTS Exploration</td><td class="hl-col">Code</td></tr>
+
+          <tr><td rowspan="2"><span class="fam-tag fam-OPRO">OPRO</span></td><td class="m-name">OCTree</td><td class="m-venue">NeurIPS'24</td><td class="hl-col">CART-based OPRO</td><td class="hl-col">Top-k (Code,CART,Score)</td><td>Native</td><td>/</td><td class="hl-col">Greedy Incremental</td><td class="hl-col">Code</td></tr>
+          <tr><td class="m-name">FEBP</td><td class="m-venue">Preprint'25</td><td class="hl-col pivotal">Vanilla OPRO</td><td class="hl-col pivotal">Top-k (RPN,Score)</td><td>Native</td><td>/</td><td class="hl-col">Expand-Reduce</td><td class="hl-col">RPN</td></tr>
+
+          <tr><td rowspan="2"><span class="fam-tag fam-Evo">Evo</span></td><td class="m-name">ELLM-FT</td><td class="m-venue">AAAI'25</td><td class="hl-col pivotal">EvoPrompt</td><td class="hl-col">Ranked (RPNSet,Score)</td><td>/</td><td>/</td><td class="hl-col">Best-of-N</td><td class="hl-col">RPN</td></tr>
+          <tr><td class="m-name">LLM-FE</td><td class="m-venue">Preprint'25</td><td class="hl-col">EvoPrompt</td><td class="hl-col">Top-k Code Snippets</td><td>Native</td><td>Random</td><td class="hl-col">Best-of-N</td><td class="hl-col">Code</td></tr>
+
+          <tr><td rowspan="2"><span class="fam-tag fam-Critic">Critic</span></td><td class="m-name">LPFG</td><td class="m-venue">IJCAI'25</td><td class="hl-col pivotal">Generator-critic</td><td class="hl-col">Textual Gradient</td><td>Calculated</td><td>/</td><td class="hl-col">Incremental</td><td class="hl-col">RPN</td></tr>
+          <tr><td class="m-name">Rouge One</td><td class="m-venue">Preprint'25</td><td class="hl-col">Generator-critic</td><td class="hl-col">Textual Gradient</td><td>RAG-Enhanced</td><td>/</td><td class="hl-col">Greedy Incremental</td><td class="hl-col">Code</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="legend-row reveal d1">
+      <span><span class="sw"></span>Core performance-driving dimensions</span>
+      <span style="color:var(--espresso);font-weight:700">Bold</span> = pivotal technique
+      <span>/ = absent</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FRAMEWORK ============ -->
+<section class="section fw-sec" id="framework">
+  <div class="wrap">
+    <div class="reveal">
+      <span class="eyebrow">LATTEArena: design & usage</span>
+      <h2 class="title">A modular, execution-safe <em>arena</em></h2>
+      <p class="lead">The three-stage paradigm is realized through seven core modules with strict I/O specifications — any technique from the taxonomy can be plugged in or adaptively routed without touching the backbone.</p>
+    </div>
+    <div class="plate reveal d1" style="margin-top:46px">
+      <img src="assets/fig4.png" alt="LATTEArena pipeline architecture">
+      <p class="fig-cap"><b>Fig 4.</b> The LATTEArena pipeline. Blue dashed boxes are optional modules adaptively routed by configuration; numbers ❶–❼ trace the iterative workflow.</p>
+    </div>
+
+    <div class="mod-grid">
+      <div class="mod reveal d1"><div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h10"/></svg></div><h4>① Serializer</h4><p>Fuses task specs, metadata & tabular data via a unified template library, abstracting away prompting & format idiosyncrasies.</p></div>
+      <div class="mod reveal d2"><span class="badge-opt">routable</span><div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></div><h4>② Retriever</h4><p>Constructs in-context demonstrations from the History Database, operationalizing the memory mechanisms.</p></div>
+      <div class="mod reveal d3"><div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a4 4 0 0 1 4 4c1.5.5 3 2 3 4a4 4 0 0 1-1 6 4 4 0 0 1-6 2 4 4 0 0 1-6-2 4 4 0 0 1-1-6c0-2 1.5-3.5 3-4a4 4 0 0 1 4-4Z"/></svg></div><h4>③ FE Agent</h4><p>The cognitive engine: policy optimizer 𝒫<sub>ℳ</sub> selects exploration strategies and interacts with the LLM to generate ϕ and context 𝒞.</p></div>
+      <div class="mod reveal d4"><div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m0 8v3a2 2 0 0 0 2 2h3m8 0h3a2 2 0 0 0 2-2v-3m0-8V5a2 2 0 0 0-2-2h-3"/></svg></div><h4>④ Post-processor</h4><p>Translates raw outputs into executable code with strict format constraints & LLM-based error recovery — the execution safety net.</p></div>
+      <div class="mod reveal d1"><div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h4l3 8 4-16 3 8h4"/></svg></div><h4>⑤ Evaluator</h4><p>Scores features with downstream models, integrating NAS & HPO for realistic full-AutoML evaluation.</p></div>
+      <div class="mod reveal d2"><div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/></svg></div><h4>⑥ History Database</h4><p>Archives generated code, metadata & scores — with the Retriever, a structured framework for context management.</p></div>
+      <div class="mod reveal d3"><span class="badge-opt">optional</span><div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v6M12 22v-4M5 12H2M22 12h-3"/><circle cx="12" cy="12" r="4"/></svg></div><h4>⑦ Warm-up Module</h4><p>Pre-populates the database via RL-based algorithms, mitigating the cold-start bottleneck with high-quality few-shot guidance.</p></div>
+      <div class="mod reveal d4" style="background:var(--espresso);color:var(--cream);border-color:var(--coffee)"><div class="mi" style="background:rgba(91,141,239,.18);color:var(--caramel-br)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></div><h4 style="color:var(--foam)">Success Rate</h4><p style="color:rgba(228,237,250,.7)">Fraction of LLM outputs parsed & executed without runtime error — maximized by strict constraints & error recovery.</p></div>
+    </div>
+
+    <div class="adv-row">
+      <div class="adv reveal d1"><h4>High-level Abstraction</h4><p>A unified interface decouples the algorithmic search strategy from execution logic across prompts, formats, and LLM backends.</p></div>
+      <div class="adv reveal d2"><h4>Seamless Extensibility</h4><p>Strict abstraction barriers let any novel technique from the six dimensions plug in or be adaptively routed.</p></div>
+      <div class="adv reveal d3"><h4>Execution Safety</h4><p>Inherently sanitizes and robustifies LLM outputs, preventing the runtime failures that plague code-generation methods.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CONFIG SPACE ============ -->
+<section class="section cfg-sec" id="config">
+  <div class="wrap">
+    <div class="reveal">
+      <span class="eyebrow">Distilling the design space</span>
+      <h2 class="title">From 1,000+ pipelines down to <em>24 core configs</em></h2>
+      <p class="lead">Naively crossing every option yields an intractable space. Three configuration principles filter confounds and enforce rigor — producing 24 configurations × 4 metadata types = <b style="color:var(--coffee)">96 unique pipelines</b>.</p>
+    </div>
+
+    <div class="alias-demo reveal d1">
+      <span class="big">CGN</span>
+      <div class="alias-leg">
+        <div><span class="k">C</span> <span class="v">oT prompting</span></div>
+        <div><span class="k">G</span> <span class="v">reedy search</span></div>
+        <div><span class="k">N</span> <span class="v">L output</span></div>
+        <div style="border-left:1px solid rgba(228,237,250,.2);padding-left:22px"><span class="v" style="color:var(--cream-3)">Aliases concatenate dimension initials.<br>Subscript <b style="color:var(--caramel-br)">h</b> = Positive-Negative history · <b style="color:var(--caramel-br)">t</b> = top-k · <b style="color:var(--caramel-br)">w</b> = warm-up · <b style="color:var(--caramel-br)">c</b> = CART.</span></div>
+      </div>
+    </div>
+
+    <div class="principles">
+      <div class="prin reveal d1"><div class="pn">P1</div><h4>Focus on core methodologies</h4><p>Prioritize methodologically distinct approaches; strictly exclude stylistic variations or external dependencies (human-in-the-loop, RAG) that skew comparisons.</p></div>
+      <div class="prin reveal d2"><div class="pn">P2</div><h4>Respect component constraints</h4><p>Enforce inherent design dependencies — e.g. pairing MCTS exclusively with ToT, or restricting the Warm-up module to the RPN format.</p></div>
+      <div class="prin reveal d3"><div class="pn">P3</div><h4>Prioritize cost-effectiveness</h4><p>Exhaust foundational configurations before escalating to complex reasoning strategies, ensuring performance gains are cost-justified.</p></div>
+    </div>
+
+    <div class="tbl-wrap reveal d1" style="margin-top:40px">
+      <table>
+        <thead><tr><th>Alias</th><th>Prompting</th><th>Strategy</th><th>Output</th><th>Demonstration</th><th>Maps to original methods</th></tr></thead>
+        <tbody>
+          <tr><td class="m-name">CGN / CGC / CGR</td><td>CoT</td><td>Greedy</td><td>NL · Code · RPN</td><td>/</td><td class="m-venue">SMARTFEAT, GPT-Signal, RAFG, FeatLLM, FREEFORM</td></tr>
+          <tr><td class="m-name">CGN<sub>h</sub> / CGC<sub>h</sub> / CGR<sub>h</sub></td><td>CoT</td><td>Greedy</td><td>NL · Code · RPN</td><td>Positive-Negative (h)</td><td class="m-venue">FEBias, CAAFE</td></tr>
+          <tr><td class="m-name">CGN<sub>t</sub> / CGC<sub>t</sub> / CGR<sub>t</sub></td><td>CoT</td><td>Greedy</td><td>NL · Code · RPN</td><td>top-k</td><td class="m-venue" style="font-style:italic">New variant</td></tr>
+          <tr><td class="m-name">TMN<sub>h</sub> / TMC<sub>h</sub> / TMR<sub>h</sub></td><td>ToT</td><td>MCTS</td><td>NL · Code · RPN</td><td>Positive-Negative (h)</td><td class="m-venue">LFG, Adda</td></tr>
+          <tr><td class="m-name">TMN / TMC / TMR</td><td>ToT</td><td>MCTS</td><td>NL · Code · RPN</td><td>/</td><td class="m-venue" style="font-style:italic">New variant</td></tr>
+          <tr><td class="m-name">GGN / GGC / GGR</td><td>Generator-critic</td><td>Greedy</td><td>NL · Code · RPN</td><td>Positive-Negative (h)</td><td class="m-venue">LPFG, Rouge One</td></tr>
+          <tr><td class="m-name">OGC<sub>c</sub></td><td>CART-based OPRO</td><td>Greedy</td><td>Code</td><td>top-k + CART</td><td class="m-venue">OCTree</td></tr>
+          <tr><td class="m-name">OGC / OGR</td><td>OPRO</td><td>Greedy</td><td>Code · RPN</td><td>top-k</td><td class="m-venue">FEBP (RPN) · Base</td></tr>
+          <tr><td class="m-name">EBR<sub>w</sub> / EBR / EBC</td><td>EvoPrompt</td><td>Best-of-N</td><td>RPN · Code</td><td>Ranked (+ warm-up)</td><td class="m-venue">ELLM-FT, LLM-FE</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FINDINGS ============ -->
+<section class="section find-sec" id="findings">
+  <div class="wrap">
+    <div class="reveal">
+      <span class="eyebrow">Benchmarking & findings</span>
+      <h2 class="title">17 findings across <em>7 research questions</em></h2>
+      <p class="lead">Massive controlled benchmarking on 16 datasets (294 → 1M+ instances) and four LLM backbones — going beyond accuracy to token efficiency and execution robustness.</p>
+    </div>
+
+    <!-- RQ1 -->
+    <div class="rq-block reveal">
+      <div class="rq-head"><span class="rq-id">RQ1</span><h3>Performance gain across tasks</h3></div>
+      <div class="find-grid">
+        <div class="finding"><span class="f-no">Finding 1</span><p><b>Task complexity dictates optimal search strategies.</b> A sharp divergence: classification favors exploratory paradigms (Evo / OPRO reach the highest test gains), while regression favors greedy incremental approaches (CoT / ToT secure the highest AutoML gains).</p></div>
+        <div class="finding"><span class="f-no">Finding 2</span><p><b>Structured formats overcome NL's expressive bottleneck.</b> RPN excels in classification via concise high-throughput exploration; Code strictly dominates regression where row-wise transforms exceed RPN's structural limits.</p></div>
+        <div class="finding"><span class="f-no">Finding 3</span><p><b>The evaluators in LATTE methods exhibit severe overfitting.</b> Validation gains are drastically inflated relative to true downstream gains (e.g. OGR reports +3.55% VG but −0.32% AG). Best-of-N sampling partially mitigates this collapse.</p></div>
+        <div class="finding"><span class="f-no">Finding 4</span><p><b>Naïve history demonstrations degrade trajectories.</b> Equipping CoT/ToT with history (h variants) often hurts — context-independent marginal scores isolate features from interactions, misguiding the evaluator.</p></div>
+      </div>
+    </div>
+
+    <!-- RQ2-3 -->
+    <div class="rq-block reveal">
+      <div class="rq-head"><span class="rq-id">RQ2 · RQ3</span><h3>Time, token cost & efficiency</h3></div>
+      <div class="find-grid">
+        <div class="finding"><span class="f-no">Finding 5</span><p><b>Architectural complexity drives exponential cost.</b> CoT→ToT/Critic incurs moderate growth (~1.3× / 2×), but evolutionary / optimization architectures trigger a near <b>10× surge</b> — a steep scalability cliff.</p></div>
+        <div class="finding"><span class="f-no">Finding 6</span><p><b>LATTE is a new time-efficient paradigm.</b> Most variants finish in ~10% of Autofeat/GRFG runtime; CGR concludes in just 5%, thanks to directed, semantic-driven exploration.</p></div>
+        <div class="finding"><span class="f-no">Finding 7</span><p><b>Demonstrations inflate input; format governs latency.</b> Adding demonstrations raises total tokens by 19.6%; switching NL→RPN slashes output tokens 81.3% and cuts runtime 36.1%, while Code bloats output by over 150%.</p></div>
+        <div class="finding"><span class="f-no">Finding 8</span><p><b>CoT wins low budgets; ToT scales.</b> A distinct crossover: CoT shows fast initial gains then hits greedy local optima, while ToT sustains scaling and surpasses CoT under high budgets.</p></div>
+        <div class="finding"><span class="f-no">Finding 9</span><p><b>Complex architectures need massive token investment.</b> Critic, OPRO and Evo show poor token efficiency under restricted budgets — their advantages are strictly conditional on relaxed cost constraints.</p></div>
+        <div class="finding"><span class="f-no">Finding 10</span><p><b>Demonstrations dilute token efficiency.</b> Positive-Negative gains in fixed-round settings are entirely offset by compounded input overhead per call; zero-shot structured prompts stay more cost-effective.</p></div>
+      </div>
+      <div class="fig2col">
+        <div class="plate"><img src="assets/cmpcost.png" alt="Time and token cost comparison"><p class="fig-cap"><b>Cost.</b> Average time/token cost across configs. Note the exponential surge from CoT to iterative OPRO/Evo, and demonstration overhead inflating input context.</p></div>
+        <div class="plate"><img src="assets/1x5.png" alt="VG vs token cost"><p class="fig-cap"><b>Efficiency.</b> Validation Gain vs token cost on 5 classification datasets — the CoT/ToT crossover and the prohibitive thresholds of complex methods.</p></div>
+      </div>
+    </div>
+
+    <!-- RQ4-5 -->
+    <div class="rq-block reveal">
+      <div class="rq-head"><span class="rq-id">RQ4 · RQ5</span><h3>Component & module analysis</h3></div>
+      <div class="find-grid">
+        <div class="finding"><span class="f-no">Finding 11</span><p><b>CART delivers near-free cost savings; the OPRO loop monopolizes overhead.</b> Replacing CART reasoning with raw metadata inflates tokens ~280% while slightly degrading VG — yet the OPRO feedback loop alone drives a 19× token surge, rendering the full pipeline impractical for standard tabular tasks unless budget constraints are entirely relaxed.</p></div>
+        <div class="finding"><span class="f-no">Finding 12</span><p><b>Evolutionary mutation synthesizes generalizable features, but warm-up quality sets the ceiling.</b> The mutation phase predominantly boosts Test Gain and AutoML Gain, evidencing robust feature synthesis rather than validation overfitting. However, degrading the warm-up to a random collector collapses AG by up to 358%, confirming that collector quality — not the mutation operator — is the decisive bottleneck.</p></div>
+        <div class="finding"><span class="f-no">Finding 13</span><p><b>System bottlenecks dictate design priorities.</b> Feature selection is the linchpin for temporal efficiency (removing it halves latency but collapses VG by 39.5%); metadata generation & compression govern the token-performance trade-off.</p></div>
+      </div>
+      <div class="plate find-fig"><img src="assets/diff_llm.png" alt="Performance and cost of different LLMs"><p class="fig-cap"><b>LLM backbones.</b> Deepseek-V3.1 achieves Pareto optimality comparable to GPT-4o; o4-mini secures the highest VG at an ~80% token premium; Llama-3.1-8B struggles with instruction-following formatting.</p></div>
+    </div>
+
+    <!-- RQ6-7 -->
+    <div class="rq-block reveal">
+      <div class="rq-head"><span class="rq-id">RQ6 · RQ7</span><h3>Scalability & robustness</h3></div>
+      <div class="find-grid">
+        <div class="finding"><span class="f-no">Finding 14</span><p><b>Data scale regulates generalization.</b> On large datasets (100k–1M) the validation-test gap virtually vanishes — sheer scale neutralizes overfitting risk without algorithmic intervention.</p></div>
+        <div class="finding"><span class="f-no">Finding 15</span><p><b>Task logic rigidly constrains format.</b> When a task demands strict rule-based reasoning (e.g. poker-hand), Code's structural rigor achieves absolute dominance, superseding sophisticated prompting.</p></div>
+        <div class="finding"><span class="f-no">Finding 16</span><p><b>Expressiveness trades off with stability.</b> Success rates degrade as formats grow expressive (NL > RPN > Code) — Code's unbounded flexibility triggers fabricated operators and hallucinatory features.</p></div>
+        <div class="finding"><span class="f-no">Finding 17</span><p><b>Iterative bottlenecks regularize generation.</b> By constraining the LLM to refine exactly one feature per iteration, OGR and OGC<sub>c</sub> maintain a <b>99% success rate</b> — a highly effective structural regularizer.</p></div>
+      </div>
+      <div class="plate find-fig"><img src="assets/rate.png" alt="Success rates across methods"><p class="fig-cap"><b>Robustness.</b> Success rates across methods. The inverse relationship between format expressiveness and stability — and the near-perfect robustness of iterative OPRO.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ RECOMMENDATIONS ============ -->
+<section class="section rec-sec" id="recommendations">
+  <div class="wrap">
+    <div class="reveal">
+      <span class="eyebrow">For practitioners</span>
+      <h2 class="title">Three recommendations for <em>real-world deployment</em></h2>
+      <p class="lead">Distilled from extensive evaluation of the sprawling design space, organized along overall performance, component design, and scalability.</p>
+    </div>
+    <div class="rec-list">
+      <div class="rec reveal"><div class="rno">1</div><div class="rbody"><h4>Match the search strategy to the budget and the format to the task</h4><p>Default to RPN zero-shot prompting (<code>CGR</code>, <code>TMR</code>) under tight budgets, tree-based planning (ToT/MCTS) at moderate budgets, and OPRO with Best-of-N only when budgets are ample — its gains carry super-linear cost. Orthogonally, pick Code for regression and RPN for classification.</p></div></div>
+      <div class="rec reveal"><div class="rno">2</div><div class="rbody"><h4>Spend tokens on cheap structural context, not algorithmic complexity</h4><p>Retain lightweight structural priors (e.g., CART-style reasoning) over bulky metadata, and keep the feature selector — the linchpin of both latency and validation gain. Trim metadata, instances, and calculated values to cut tokens cheaply, and skip history demonstrations whose input overhead outweighs their benefit.</p></div></div>
+      <div class="rec reveal"><div class="rno">3</div><div class="rbody"><h4>Scale safeguards to data size and task logic</h4><p>On small datasets, counter LLM-evaluator overfitting with Best-of-N. Use Code for logic-bound tasks, and apply rule-based error-correction (or OPRO's single-feature refinement) to secure success rates.</p></div></div>
+    </div>
+
+    <div class="reveal" style="margin-top:72px">
+      <span class="eyebrow">Beyond</span>
+      <h2 class="title" style="font-size:clamp(1.7rem,3.4vw,2.4rem)">Three bottlenecks point the way forward</h2>
+    </div>
+    <div class="btl-grid">
+      <div class="btl reveal d1"><span class="bi">No universal winner</span><p>No single method dominates across all data scales — the optimal choice shifts with task type and budget.</p></div>
+      <div class="btl reveal d2"><span class="bi">Diminishing returns</span><p>Algorithmic complexification yields diminishing returns relative to escalating query cost.</p></div>
+      <div class="btl reveal d3"><span class="bi">Costly memory</span><p>Existing demonstration forms remain cost-ineffective — future work must pivot to better tabular context management.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CITE ============ -->
+<section class="section cite-sec" id="cite">
+  <div class="wrap">
+    <div class="reveal">
+      <span class="eyebrow">Citation</span>
+      <h2 class="title">Cite <em>LATTEArena</em></h2>
+      <p class="lead">All code, datasets, and over 4,000 execution logs are publicly released to foster a dynamic, community-driven benchmark.</p>
+    </div>
+    <div class="bib reveal d1">
+      <button class="copy" id="copyBtn">Copy</button>
+      <pre id="bibtex">@misc{hao2026lattearena,
+  title  = {LATTEArena: An Evaluation Framework for
+            LLM-powered Tabular Feature Engineering},
+  author = {Hao, Ankai and Chen, Ke and Li, Huan and Shou, Lidan},
+  year   = {2026},
+  note   = {Zhejiang University, Hangzhou, China}
+}</pre>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer>
+  <div class="wrap foot-inner">
+    <div>
+      <div class="foot-brand">☕ LATTE<b>Arena</b></div>
+      <div style="font-size:.84rem;margin-top:6px">Zhejiang University · 2026</div>
+    </div>
+    <div class="foot-links">
+      <a href="https://arxiv.org/abs/2606.09004" target="_blank" rel="noopener">Paper</a><a href="https://github.com/goodenhak/LATTEArena" target="_blank" rel="noopener">Code</a><a href="https://drive.google.com/file/d/1s4C19r3EdntOYEBE47Yu20M31Gd_pB-J/view?usp=drive_link" target="_blank" rel="noopener">Datasets</a><a href="https://github.com/goodenhak/LATTEArena/tree/main/execution_logs" target="_blank" rel="noopener">Logs</a><a href="#top">↑ Top</a>
+    </div>
+    <div class="foot-note">From ad-hoc prompt engineering to systematic context management. · 15 methods · 6 dimensions · 24 configurations · 96 pipelines · 7 research questions · 17 findings · 3 recommendations.</div>
+  </div>
+</footer>
+
+<script>
+/* ---- nav scroll state ---- */
+const nav=document.getElementById('nav');
+addEventListener('scroll',()=>nav.classList.toggle('scrolled',scrollY>40));
+
+/* ---- mobile menu ---- */
+const mm=document.getElementById('mobileMenu');
+document.getElementById('burger').onclick=()=>mm.classList.add('open');
+document.getElementById('mclose').onclick=()=>mm.classList.remove('open');
+mm.querySelectorAll('a').forEach(a=>a.onclick=()=>mm.classList.remove('open'));
+
+/* ---- steam generator ---- */
+const steam=document.getElementById('steam');
+for(let i=0;i<7;i++){
+  const s=document.createElement('i');
+  const h=120+Math.random()*120;
+  s.style.height=h+'px';
+  s.style.left=(10+i*13)+'%';
+  s.style.animationDuration=(6+Math.random()*5)+'s';
+  s.style.animationDelay=(-Math.random()*6)+'s';
+  steam.appendChild(s);
+}
+
+/* ---- reveal on scroll ---- */
+const io=new IntersectionObserver((es)=>{
+  es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});
+},{threshold:.12});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+/* ---- count up ---- */
+const cio=new IntersectionObserver((es)=>{
+  es.forEach(e=>{
+    if(!e.isIntersecting)return;
+    const el=e.target,t=+el.dataset.count;let n=0;
+    const step=Math.max(1,Math.ceil(t/40));
+    const iv=setInterval(()=>{n+=step;if(n>=t){n=t;clearInterval(iv);}el.textContent=n+(t===96?'':'');},26);
+    cio.unobserve(el);
+  });
+},{threshold:.5});
+document.querySelectorAll('.num[data-count]').forEach(el=>cio.observe(el));
+
+/* ---- copy bibtex ---- */
+document.getElementById('copyBtn').onclick=function(){
+  navigator.clipboard.writeText(document.getElementById('bibtex').textContent).then(()=>{
+    this.textContent='Copied ✓';setTimeout(()=>this.textContent='Copy',1600);
+  });
+};
+</script>
+</body>
+</html>
