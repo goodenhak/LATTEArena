@@ -1,12 +1,12 @@
-# LATTEBench
+# LATTEArena
 
-LATTEBench is an standardized and modular framework designed for LLM-powered
+LATTEArena is an standardized and modular framework designed for LLM-powered
 AuTomated Tabular feature Engineering (LATTE), integrating multiple feature generation methods. The framework organizes the pipeline into three stages as shown in Figure bellow: Prompt Construction, LLM-powered FE, and Post-process.
 These stages are realized through seven core modules: Serializer,
 FE Agent, Post-processor and Feature Selector, Evaluator, Retriever,
 History Database, and Warm-up Module.
 ![bench](bench.png)
-For the extended tables and experiments of our LATTEBench paper, please refer to the full extended version on [arXiv](https://arxiv.org/abs/2606.09004).
+For the extended tables and experiments of our LATTEArena paper, please refer to the full extended version on [arXiv](https://arxiv.org/abs/2606.09004).
 
 For our open-source execution logs and related descriptions, please refer to [About logs](./execution_logs/README.md).
 
@@ -258,7 +258,7 @@ During execution, the following is displayed:
 
 ```
 ======================================================================
-LATTEBench Benchmark Runner
+LATTEArena Benchmark Runner
 ======================================================================
 Methods: ['CoT', 'ToT']
 Datasets: ['credit-g', 'diamonds']
@@ -436,7 +436,7 @@ Running bench.py with test configuration
 Command: python bench.py --methods CoT LtM Critic OPRO OPROc ToT ECoT --datasets credit-g --seeds 1 --iter=2 --dialogue_turns=2 --max_steps=2 --num_thoughts=2 --max_states=1 --log_path=./log_test --llm_model=gpt-4o --metadata_cat=3
 
 ======================================================================
-LATTEBench Benchmark Runner
+LATTEArena Benchmark Runner
 ======================================================================
 Methods: ['CoT', 'LtM', 'Critic', 'OPRO', 'OPROc', 'ToT', 'ECoT']
 Datasets: ['credit-g']
@@ -813,7 +813,7 @@ The ECoT method in `latte.py` can then use the collected demonstrations for feat
 
 ## Datasets
 
-LATTEBench mainly uses the following datasets:
+LATTEArena mainly uses the following datasets:
 
 | Dataset | Description |
 |---------|-------------|

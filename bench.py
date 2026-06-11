@@ -1,5 +1,5 @@
 """
-bench.py - Comprehensive benchmark runner for LATTEBench framework.
+bench.py - Comprehensive benchmark runner for LATTEArena framework.
 
 Related scripts:
     - baseline_eval.py:     Evaluate original features (no FE) with RF / AutoGluon
@@ -154,7 +154,7 @@ METHOD_ITERATIONS = {
 
 def parse_arguments():
     parser = argparse.ArgumentParser(
-        description='LATTEBench Benchmark Runner',
+        description='LATTEArena Benchmark Runner',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=__doc__
     )
@@ -535,7 +535,7 @@ class BenchmarkRunner:
         current = 0
 
         print("=" * 70)
-        print("LATTEBench Benchmark Runner")
+        print("LATTEArena Benchmark Runner")
         print("=" * 70)
         print(f"Methods: {self.args.methods}")
         print(f"Datasets: {self.args.datasets}")

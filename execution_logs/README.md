@@ -1,8 +1,8 @@
 # Log Analysis Tools
 
-To facilitate analysis without incurring over two weeks of runtime and $700+ in API costs, this directory provides 4,000+ high-quality execution logs for the various LATTE methods within the LATTEBench paper. We have filtered out logs that failed within short turns. All observations presented in the paper can be derived from these logs.
+To facilitate analysis without incurring over two weeks of runtime and $700+ in API costs, this directory provides 4,000+ high-quality execution logs for the various LATTE methods within the LATTEArena paper. We have filtered out logs that failed within short turns. All observations presented in the paper can be derived from these logs.
 
-Owing to historical legacy issues accumulated during LATTEBench's iterative development, inconsistencies exist in both the content and format of these execution logs. We are committed to assisting researchers in leveraging these logs for LLM behavior analysis and model training; therefore, we provide a suite of Python scripts designed for automated analysis.
+Owing to historical legacy issues accumulated during LATTEArena's iterative development, inconsistencies exist in both the content and format of these execution logs. We are committed to assisting researchers in leveraging these logs for LLM behavior analysis and model training; therefore, we provide a suite of Python scripts designed for automated analysis.
 
 ## Tool 1: `extract_log.py`
 
