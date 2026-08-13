@@ -113,7 +113,7 @@ python extract_log_unified.py -i extracted_data.log
 
 ## Tool 3 `extract.py`
 
-Parses raw log files for a single dataset across multiple seeds, extracts per-file metrics (val/test accuracy changes, AG accuracy changes, token usage, time), and outputs a summary with averaged results. Missing or unavailable data will be reported in the summary.
+Parses raw log files for a single dataset across multiple seeds, extracts per-file metrics (val/test accuracy changes, AG accuracy changes, token usage, time), and outputs a summary with averaged results (mean ± std). Missing or unavailable data will be reported in the summary.
 
 ### Usage
 
@@ -125,9 +125,24 @@ python extract.py <directory> --dataset <name> --seeds <seed1> [seed2 ...]
 
 | Argument | Description | Default |
 |---|---|---|
-| `directory` | Directory containing log files | required |
-| `--dataset` | Dataset name prefix (e.g., `credit-g`) | required |
+| `directory` | Directory containing log files (or method subdirectories when `--methods` is given) | required |
+| `--dataset` | Dataset name prefix (e.g., `credit-g`) | one of `--dataset`/`--datasets` required |
+| `--datasets` | Multiple dataset name prefixes (enables table mode) | - |
+| `--methods` | Comma-separated method subdirectory names; `directory` is then the parent directory (e.g., `Main_Results`) | - |
 | `--seeds` | Random seeds to include (e.g., `1 2 3 4 5 6`) | required |
+
+### Modes
+
+- **Single mode** (`--dataset` only): per-file details plus the summary below.
+- **Table mode** (`--datasets` and/or `--methods`): one row per (method, dataset) with `mean±std` for VG/TG/AG and the file count. Logs that do not record the initial accuracy (e.g., EBR*) fall back to the cross-method median initial accuracy for the same (dataset, seed), computed from the selected methods' logs.
+
+```bash
+# One method, several datasets
+python extract.py Main_Results/OGC --datasets credit-g heart-h electricity --seeds 1 2 3 4 5 6
+
+# Several methods × several datasets
+python extract.py Main_Results --methods CGN,CGR,OGN,EBRw --datasets credit-g heart-h kc1 --seeds 1 2 3 4 5 6
+```
 
 ### Metrics Extracted
 
@@ -139,7 +154,19 @@ python extract.py <directory> --dataset <name> --seeds <seed1> [seed2 ...]
 ### Summary Behavior
 
 - When there are more than one results, the **lowest value is removed** before averaging (trimmed mean).
+- Each averaged metric is reported together with its **sample standard deviation** (`std`) and the number of values used (`n`).
 - If any files have missing or unavailable data, the summary will list the affected files. In this case, it is **highly recommended** to **manually** inspect the specific results in the log and record them, or delete the corresponding log and **re-run the bench**.
+
+### Supported Log Formats
+
+In addition to the default format (`INFO - val_acc =`, `INFO - Best performance =`, `INFO - final_test_acc =`), the parser also supports:
+
+| Method Family | Init Acc | Best Val Acc | Final Test Acc |
+|---|---|---|---|
+| TMN (ToT) | `val_acc =` | `Accuracy Test:` | `rf final_test_acc =` |
+| OGN, EBR* | `Initial val_acc =` / `Initial test_acc =` | `best accuracy =` (last) | `final_test_acc_rf =` (last) |
+| OGR, OGC | `Initial val_acc =` / `Initial test_acc =` | `After selection - Val Acc:` (last) | `After selection - ... Test Acc:` (last) |
+| OGCc | `val acc =` (first; init test acc not logged) | max of `val acc =` lines | `final RandomForest Val: .. \| Test: ..` (percent) or `Val: .. \| Test: ..` (last) |
 
 ### Example
 
@@ -528,3 +555,4 @@ Total rounds without errors: 426
 Overall success rate: 0.8038 (426/530)
 ```
 </details>
+

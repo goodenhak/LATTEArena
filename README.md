@@ -10,6 +10,8 @@ For the extended tables and experiments of our LATTEArena paper, please refer to
 
 For our open-source execution logs and related descriptions, please refer to [About logs](./execution_logs/README.md).
 
+For the cross-dataset seed standard deviation analysis of the methods, please refer to [SeedStd.md](./execution_logs/SeedStd.md).
+
 ## Environment Setup
 
 ### 1. Install Dependencies
@@ -761,6 +763,62 @@ done
 
 - Log files: `./log/{data_name}_AutoFeat_{seed}.log`
 - Generated feature data: `./tmp/{data_name}/train.csv`, `val.csv`, `test.csv`
+
+---
+
+## baseline_openfe.py - OpenFE Traditional Feature Engineering Baseline
+
+`baseline_openfe.py` runs [OpenFE](https://arxiv.org/abs/2211.12507) (reproduce-repo implementation in `OpenFE_reproduce/`) as a non-LLM comparison baseline, under exactly the same evaluation protocol as every other method in this framework:
+
+- Same data, split and preprocessing: `Preprocess.split_and_prepare_data` (stratified 80/20 test split, then 80/20 train/val split, `random_state=seed`). If `tabular_data/{data_name}.csv` is unavailable, it falls back to the cached full data at `tmp/{data_name}/{data_name}.csv` and re-does the identical split.
+- Same downstream evaluators: `Evaluator.train_and_evaluate_rf` (`RandomForestClassifier(random_state=42)`) for the initial (original features) and final (OpenFE features) accuracies, plus `Evaluator.train_and_evaluate` (AutoGluon, medium_quality) on the final features — logged as `final_test_acc_ag`, matching the other methods' logs so `extract.py` computes the AG gain against its `AG_INIT` references.
+- OpenFE's internal LightGBM-based feature scoring is part of the method; reported numbers always come from the framework RF evaluator. First-order candidate enumeration, top-10 features kept (paper default).
+
+### Dependencies
+
+```bash
+pip install lightgbm shap   # OpenFE_reproduce requirement; see its readme.md
+```
+
+### Command-Line Arguments
+
+```bash
+--data_name        # Dataset name (default: credit-g)
+--seed             # Random seed (default: 1)
+--task_type        # 1=classification, 0=regression (default: 1)
+--test_size        # Test set ratio (default: 0.2)
+--val_size         # Validation set ratio (default: 0.2)
+
+# OpenFE arguments
+--n_new_features   # Features to keep (default: 10, the paper's n_saved_features)
+--ordinal_threshold# Numeric columns with <= this many unique values are ordinal (default: 100)
+--remain           # Candidates kept after stage 1 (default: 2000)
+--fold             # Stage-1 subsample fold (default: 32; auto-shrunk on small datasets)
+--n_jobs           # Parallel jobs (default: 8)
+
+--log_path         # Log directory (default: ./log)
+--log_filename     # Log filename (default: {data_name}_OpenFE_{seed}.log)
+```
+
+### Usage Examples
+
+```bash
+# Single dataset, single seed
+python baseline_openfe.py --data_name credit-g --seed 1
+
+# Batch: 9 classification datasets x 6 seeds, logs into Main_Results
+for ds in heart-h credit-approval vehicle credit-g qsar-biodeg socmob kc1 nomao electricity; do
+  for seed in 1 2 3 4 5 6; do
+    python baseline_openfe.py --data_name $ds --seed $seed \
+        --log_path execution_logs/Main_Results/OpenFE
+  done
+done
+```
+
+### Notes
+
+- macOS compatibility: the script forces the `fork` multiprocessing start method (OpenFE's workers rely on fork-inherited globals) and patches two small-data edge cases in `OpenFE.get_init_metric` / `OpenFE.delete_same` at runtime — the `OpenFE_reproduce/` repo itself is not modified.
+- Log format is compatible with `execution_logs/extract.py` (`val_acc =`, `test_acc =`, `Best performance =`, `final_test_acc =`).
 
 ---
 
